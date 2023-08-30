@@ -33,8 +33,9 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          echo "majorVersionValue=${{ steps.version.outputs.prop }} | cut -d '.' -f 1" >> $GITHUB_ENV
-          echo "zipFile=${{ steps.name.outputs.prop }}-${{ steps.version.outputs.prop }}".zip >> $GITHUB_ENV
+          echo "repositoryName=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}" >> $GITHUB_ENV
+          echo "majorVersionValue=`${{ steps.version.outputs.prop }} | cut -d '.' -f 1`" >> $GITHUB_ENV
+          echo "zipFile=${{ steps.name.outputs.prop }}-${{ steps.version.outputs.prop }}.zip" >> $GITHUB_ENV
 
       - name: Create Zip
         uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
@@ -44,7 +45,7 @@ jobs:
           filename: "${{env.zipFile}}"
 
       - name: Create VPAI Package
-        run: curl -sL "https://api.anatawa12.com/create-vpai/?repo=https%3A%2F%2Fsayabeans.github.io%2Fvpm%2Fvpm.json&package=${{ steps.name.outputs.prop }}&version=${{ env.majorVersionValue }}.x.x" > ${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}-${{ env.majorVersionValue }}.x.x-installer.unitypackage
+        run: curl -sL "https://api.anatawa12.com/create-vpai/?repo=https%3A%2F%2Fsayabeans.github.io%2Fvpm%2Fvpm.json&package=${{ steps.name.outputs.prop }}&version=${{ env.majorVersionValue }}.x.x" > ${{ env.repositoryName }}-${{ env.majorVersionValue }}.x.x-installer.unitypackage
 
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
@@ -52,5 +53,5 @@ jobs:
           tag_name: v${{ steps.version.outputs.prop }}
           files: |
             ${{ env.zipFile }}
-            ${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}-${{ env.majorVersionValue }}.x.x-installer.unitypackage
+            ${{ env.repositoryName }}-${{ env.majorVersionValue }}.x.x-installer.unitypackage
             package.json
