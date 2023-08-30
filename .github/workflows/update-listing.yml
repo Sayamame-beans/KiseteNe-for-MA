@@ -11,7 +11,7 @@ on:
 
 # Allow one concurrent deployment
 concurrency:
-  group: "release"
+  group: "Release"
   cancel-in-progress: true
 
 jobs:
@@ -25,4 +25,4 @@ jobs:
           curl -X POST https://api.github.com/repos/Sayabeans/vpm/dispatches \
             -H "Authorization: token $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d '{"event_type":"release","client_payload":{}}'
+            -d '{"event_type":"Release","client_payload":{}}'
