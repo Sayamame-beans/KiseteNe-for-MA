@@ -34,7 +34,7 @@ jobs:
       - name: Set Environment Variables
         run: |
           echo "repositoryName=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}" >> $GITHUB_ENV
-          echo "majorVersionValue=`${{ steps.version.outputs.prop }} | cut -d '.' -f 1`" >> $GITHUB_ENV
+          echo "majorVersionValue=`echo ${{ steps.version.outputs.prop }} | cut -d '.' -f 1`" >> $GITHUB_ENV
           echo "zipFile=${{ steps.name.outputs.prop }}-${{ steps.version.outputs.prop }}.zip" >> $GITHUB_ENV
 
       - name: Create Zip
