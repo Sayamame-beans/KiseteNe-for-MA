@@ -1,0 +1,28 @@
+name: Update Repo Listing
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Build Release]
+    types:
+      - completed
+  release:
+     types: [published, created, edited, unpublished, deleted, released]
+
+# Allow one concurrent deployment
+concurrency:
+  group: "release"
+  cancel-in-progress: true
+
+jobs:
+  run-repository-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Listing by Calling Action
+        run: |
+          TOKEN=${{ secrets.VPM_RELEASE_TOKEN }}
+
+          curl -X POST https://api.github.com/repos/Sayabeans/vpm/dispatches \
+            -H "Authorization: token $TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"event_type":"release","client_payload":{}}'
