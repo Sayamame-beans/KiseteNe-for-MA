@@ -18,7 +18,7 @@ https://github.com/Sayamame-beans/KiseteNe-for-MA
 
 「VPAI」について
 BOOTH等で配布している本ツールのunitypackageにはVPAIを用いているため、インポートすると自動的にVPMリポジトリからパッケージをダウンロードし、プロジェクトに導入されます。
-VPAIでは、VCCのパッケージ一覧にもパッケージが追加されるようになっていますが、2023年8月31日現在ではこちらのバグ(https://github.com/vrchat-community/creator-companion/issues/111)によって反映されない可能性が高いです。
+VPAIでは、VCCのパッケージ一覧にもパッケージが追加されるようになっていますが、2023年8月31日現在ではこちらのバグ( https://github.com/vrchat-community/creator-companion/issues/111 )によって反映されない可能性が高いです。
 
 ちなみに、VPAI Packageは、WebツールかUnityエディタ拡張によって生成することが出来ます。
 
