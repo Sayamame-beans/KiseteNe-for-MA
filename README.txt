@@ -1,5 +1,6 @@
 本ツールは、着せ替え支援ツール「キセテネ」をprefab状態の衣装にも利用可能なように改変したものです。
 Modular Avatar等と併用することを前提としているため、衣装変形機能はそのままに、衣装を着せる機能は削除しています。
+使い方は元のキセテネと同じで、Unityの画面上部メニューの「Tools」→「KiseteNe for MA」からウィンドウを開くことが出来ます。
 
 Modular Avatar
 https://modular-avatar.nadena.dev/ja/
