@@ -1,12 +1,12 @@
 {
   "name": "com.github.sayamame-beans.kisetene-for-ma",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "KiseteNe for MA",
   "author": {
     "name": "Sayamame-beans",
     "url": "https://github.com/Sayamame-beans"
   },
-  "vpmDependenices": {
+  "vpmDependencies": {
     "com.vrchat.avatars": "3.x.x"
   },
   "description": "KiseteNe without dressing function. Compatible with prefab.",
