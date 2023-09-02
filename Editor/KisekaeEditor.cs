@@ -69,7 +69,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		void OnGUI()
 		{
-			Undo.RecordObject(this, "Kisetene");
+			Undo.RecordObject(this, "KiseteNe for MA");
 			GUILayout.Label("MA向け衣装調整支援ツール「キセテネ for MA」", EditorStyles.boldLabel);
 
 			GUILayout.Label("服をセットしてください", EditorStyles.largeLabel);
