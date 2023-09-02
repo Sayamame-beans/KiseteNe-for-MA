@@ -6,6 +6,7 @@ https://opensource.org/licenses/mit-license.php
 */
 
 using System;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -321,6 +322,22 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
+		private static readonly Regex ArmatureRegexPattern = new Regex("armature|root|skelton", RegexOptions.IgnoreCase);
+		private static readonly Regex HipsPattern = new Regex("hip", RegexOptions.IgnoreCase);
+		private static readonly Regex NeckPattern = new Regex("neck", RegexOptions.IgnoreCase);
+		private static readonly Regex HeadPattern = new Regex("head", RegexOptions.IgnoreCase);
+		private static readonly Regex SplinePattern = new Regex("spine", RegexOptions.IgnoreCase);
+		private static readonly Regex ChestPattern = new Regex("chest", RegexOptions.IgnoreCase);
+		private static readonly Regex UpperChestPattern = new Regex("upper", RegexOptions.IgnoreCase);
+		private static readonly Regex ShoulderPattern = new Regex("shoulder", RegexOptions.IgnoreCase);
+		private static readonly Regex UpperArmPattern = new Regex("upper|arm", RegexOptions.IgnoreCase);
+		private static readonly Regex LowerArmPattern = new Regex("lower|elbow", RegexOptions.IgnoreCase);
+		private static readonly Regex HandPattern = new Regex("hand|wrist", RegexOptions.IgnoreCase);
+		private static readonly Regex UpperLegPattern = new Regex("upper|leg", RegexOptions.IgnoreCase);
+		private static readonly Regex LowerLegPattern = new Regex("lower|knee", RegexOptions.IgnoreCase);
+		private static readonly Regex FootPattern = new Regex("foot|ankle", RegexOptions.IgnoreCase);
+		private static readonly Regex ToesPattern = new Regex("toe", RegexOptions.IgnoreCase);
+
 		//セットされたものからボーン構造を作る
 		void UpdateBoneList()
 		{
@@ -329,7 +346,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (dress == null)
 				return;
 
-			armature = FindBone(HumanBodyBones.Hips, dress.transform, "armature|root|skelton");
+			armature = FindBone(HumanBodyBones.Hips, dress.transform, ArmatureRegexPattern);
 			if (armature == null) {
 				dressBoneError = true;
 				return;
@@ -343,16 +360,16 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 
 			if(boneList[HumanBodyBones.Hips] == null)
-				boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,armature, "hip");
+				boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,armature, HipsPattern);
 
 			if (boneList[HumanBodyBones.Hips] == null) {
 				//頭すげ替えか髪の毛用
-				if (FindBone(HumanBodyBones.Neck, armature, "neck")) {
-					boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, armature, "neck");
-					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], "head");
+				if (FindBone(HumanBodyBones.Neck, armature, NeckPattern)) {
+					boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, armature, NeckPattern);
+					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], HeadPattern);
 					isHair = true;
-				} else if (FindBone(HumanBodyBones.Head, armature, "head")) {
-					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, armature, "head");
+				} else if (FindBone(HumanBodyBones.Head, armature, HeadPattern)) {
+					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, armature, HeadPattern);
 					isHair = true;
 				} else {
 					dressBoneError = true;
@@ -362,40 +379,40 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			dressBoneError = false;
 
-			boneList[HumanBodyBones.Spine] = FindBone(HumanBodyBones.Spine, boneList[HumanBodyBones.Hips], "spine");
-			boneList[HumanBodyBones.Chest] = FindBone(HumanBodyBones.Chest, boneList[HumanBodyBones.Spine], "chest");
+			boneList[HumanBodyBones.Spine] = FindBone(HumanBodyBones.Spine, boneList[HumanBodyBones.Hips], SplinePattern);
+			boneList[HumanBodyBones.Chest] = FindBone(HumanBodyBones.Chest, boneList[HumanBodyBones.Spine], ChestPattern);
 
 			//UpperChestあったらHeadとShoulderはそっちから拾う
-			var upperChest = FindBone(HumanBodyBones.UpperChest, boneList[HumanBodyBones.Chest], "upper");
+			var upperChest = FindBone(HumanBodyBones.UpperChest, boneList[HumanBodyBones.Chest], UpperChestPattern);
 			boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck,
-				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], "neck");
-			boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], "head");
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], NeckPattern);
+			boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], HeadPattern);
 
 			//左腕
 			boneList[HumanBodyBones.LeftShoulder] = FindBone(HumanBodyBones.LeftShoulder,
-				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], "shoulder", Side.Left);
-			boneList[HumanBodyBones.LeftUpperArm] = FindBone(HumanBodyBones.LeftUpperArm, boneList[HumanBodyBones.LeftShoulder], "upper|arm");
-			boneList[HumanBodyBones.LeftLowerArm] = FindBone(HumanBodyBones.LeftLowerArm, boneList[HumanBodyBones.LeftUpperArm], "lower|elbow");
-			boneList[HumanBodyBones.LeftHand] = FindBone(HumanBodyBones.LeftHand, boneList[HumanBodyBones.LeftLowerArm], "hand|wrist");
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], ShoulderPattern, Side.Left);
+			boneList[HumanBodyBones.LeftUpperArm] = FindBone(HumanBodyBones.LeftUpperArm, boneList[HumanBodyBones.LeftShoulder], UpperArmPattern);
+			boneList[HumanBodyBones.LeftLowerArm] = FindBone(HumanBodyBones.LeftLowerArm, boneList[HumanBodyBones.LeftUpperArm], LowerArmPattern);
+			boneList[HumanBodyBones.LeftHand] = FindBone(HumanBodyBones.LeftHand, boneList[HumanBodyBones.LeftLowerArm], HandPattern);
 
 			//右腕
 			boneList[HumanBodyBones.RightShoulder] = FindBone(HumanBodyBones.RightShoulder,
-				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], "shoulder", Side.Right);
-			boneList[HumanBodyBones.RightUpperArm] = FindBone(HumanBodyBones.RightUpperArm, boneList[HumanBodyBones.RightShoulder], "upper|arm");
-			boneList[HumanBodyBones.RightLowerArm] = FindBone(HumanBodyBones.RightLowerArm, boneList[HumanBodyBones.RightUpperArm], "lower|elbow");
-			boneList[HumanBodyBones.RightHand] = FindBone(HumanBodyBones.RightHand, boneList[HumanBodyBones.RightLowerArm], "hand|wrist");
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], ShoulderPattern, Side.Right);
+			boneList[HumanBodyBones.RightUpperArm] = FindBone(HumanBodyBones.RightUpperArm, boneList[HumanBodyBones.RightShoulder], UpperArmPattern);
+			boneList[HumanBodyBones.RightLowerArm] = FindBone(HumanBodyBones.RightLowerArm, boneList[HumanBodyBones.RightUpperArm], LowerArmPattern);
+			boneList[HumanBodyBones.RightHand] = FindBone(HumanBodyBones.RightHand, boneList[HumanBodyBones.RightLowerArm], HandPattern);
 
 			//左足
-			boneList[HumanBodyBones.LeftUpperLeg] = FindBone(HumanBodyBones.LeftUpperLeg, boneList[HumanBodyBones.Hips], "upper|leg", Side.Left);
-			boneList[HumanBodyBones.LeftLowerLeg] = FindBone(HumanBodyBones.LeftLowerLeg, boneList[HumanBodyBones.LeftUpperLeg], "lower|knee");
-			boneList[HumanBodyBones.LeftFoot] = FindBone(HumanBodyBones.LeftFoot, boneList[HumanBodyBones.LeftLowerLeg], "foot|ankle");
-			boneList[HumanBodyBones.LeftToes] = FindBone(HumanBodyBones.LeftToes, boneList[HumanBodyBones.LeftFoot], "toe");
+			boneList[HumanBodyBones.LeftUpperLeg] = FindBone(HumanBodyBones.LeftUpperLeg, boneList[HumanBodyBones.Hips], UpperLegPattern, Side.Left);
+			boneList[HumanBodyBones.LeftLowerLeg] = FindBone(HumanBodyBones.LeftLowerLeg, boneList[HumanBodyBones.LeftUpperLeg], LowerLegPattern);
+			boneList[HumanBodyBones.LeftFoot] = FindBone(HumanBodyBones.LeftFoot, boneList[HumanBodyBones.LeftLowerLeg], FootPattern);
+			boneList[HumanBodyBones.LeftToes] = FindBone(HumanBodyBones.LeftToes, boneList[HumanBodyBones.LeftFoot], ToesPattern);
 
 			//右足
-			boneList[HumanBodyBones.RightUpperLeg] = FindBone(HumanBodyBones.RightUpperLeg, boneList[HumanBodyBones.Hips], "upper|leg", Side.Right);
-			boneList[HumanBodyBones.RightLowerLeg] = FindBone(HumanBodyBones.RightLowerLeg, boneList[HumanBodyBones.RightUpperLeg], "lower|knee");
-			boneList[HumanBodyBones.RightFoot] = FindBone(HumanBodyBones.RightFoot, boneList[HumanBodyBones.RightLowerLeg], "foot|ankle");
-			boneList[HumanBodyBones.RightToes] = FindBone(HumanBodyBones.RightToes, boneList[HumanBodyBones.RightFoot], "toe");
+			boneList[HumanBodyBones.RightUpperLeg] = FindBone(HumanBodyBones.RightUpperLeg, boneList[HumanBodyBones.Hips], UpperLegPattern, Side.Right);
+			boneList[HumanBodyBones.RightLowerLeg] = FindBone(HumanBodyBones.RightLowerLeg, boneList[HumanBodyBones.RightUpperLeg], LowerLegPattern);
+			boneList[HumanBodyBones.RightFoot] = FindBone(HumanBodyBones.RightFoot, boneList[HumanBodyBones.RightLowerLeg], FootPattern);
+			boneList[HumanBodyBones.RightToes] = FindBone(HumanBodyBones.RightToes, boneList[HumanBodyBones.RightFoot], ToesPattern);
 
 			if (boneList[HumanBodyBones.Spine] == null ||
 				boneList[HumanBodyBones.Chest] == null ||

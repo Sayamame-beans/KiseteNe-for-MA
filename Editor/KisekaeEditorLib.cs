@@ -19,7 +19,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			return boneList[bone];
 		}
 
-		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern)
+		Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern)
 		{
 			if (boneList[bone] != null)
 				return boneList[bone];
@@ -28,13 +28,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				return null;
 
 			foreach (Transform child in parent) {
-				if (Regex.IsMatch(child.name, matchPattern, RegexOptions.IgnoreCase))
+				if (matchPattern.IsMatch(child.name))
 					return child;
 			}
 			return null;
 		}
 
-		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern, Side side)
+		Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern, Side side)
 		{
 			if (boneList[bone] != null)
 				return boneList[bone];
@@ -47,7 +47,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			foreach (Transform child in parent)
 			{
-				if (Regex.IsMatch(child.name, matchPattern, RegexOptions.IgnoreCase))
+				if (matchPattern.IsMatch(child.name))
 				{
 					if (hit1 == null)
 						hit1 = child;
