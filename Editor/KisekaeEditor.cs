@@ -13,17 +13,17 @@ namespace Sayabeans.KiseteNeForMA.Editor
 {
 	public partial class KisekaeEditor : EditorWindow
 	{
-		GameObject m_dress;
+		[SerializeField] private GameObject dress;
 
-		Transform m_armature;
-		HumanBodyBonesToDictionaryMapping m_boneList = new HumanBodyBonesToDictionaryMapping();
+		[SerializeField] private Transform armature;
+		[SerializeField] private HumanBodyBonesToDictionaryMapping boneList = new HumanBodyBonesToDictionaryMapping();
 
-		bool m_boneDetail = false;
-		int m_selectedTabNumber = 0;
-		Vector2 scrollPosition;
-		bool m_isHair = false;
-		bool m_dressBoneError = false;
-		bool m_dressBoneWarn = false;
+		[SerializeField] private bool boneDetail = false;
+		[SerializeField] private int selectedTabNumber = 0;
+		[SerializeField] private Vector2 scrollPosition;
+		[SerializeField] private bool isHair = false;
+		[SerializeField] private bool dressBoneError = false;
+		[SerializeField] private bool dressBoneWarn = false;
 
 		const int RIGHT = 1;
 		const int LEFT = 2;
@@ -43,6 +43,14 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		[SerializeField] private FloatUndoState spineRotate;
 
+		//初期値保持
+		[SerializeField] private Vector3 defaultHipsPos;
+		[SerializeField] private Quaternion defaultLArmQuat;
+		[SerializeField] private Quaternion defaultRArmQuat;
+		[SerializeField] private Quaternion defaultSpineQuat;
+		[SerializeField] private Quaternion defaultLLegQuat;
+		[SerializeField] private Quaternion defaultRLegQuat;
+
 		public void OnEnable()
 		{
 			// Only add callback once.
@@ -54,14 +62,6 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		{
 			Undo.undoRedoPerformed -= Repaint;
 		}
-
-		//初期値保持
-		Vector3 m_defaultHipsPos;
-		Quaternion m_defaultLArmQuat;
-		Quaternion m_defaultRArmQuat;
-		Quaternion m_defaultSpineQuat;
-		Quaternion m_defaultLLegQuat;
-		Quaternion m_defaultRLegQuat;
 
 		[MenuItem("Tools/KiseteNe for MA")]
 		public static void ShowWindow()
@@ -77,38 +77,38 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("服をセットしてください", EditorStyles.largeLabel);
 
 			EditorGUI.BeginChangeCheck();
-			m_dress = EditorGUILayout.ObjectField("服", m_dress, typeof(GameObject), true) as GameObject;
+			dress = EditorGUILayout.ObjectField("服", dress, typeof(GameObject), true) as GameObject;
 			if (EditorGUI.EndChangeCheck()) {
-				m_dressBoneError = false;
-				m_dressBoneWarn = false;
-				m_isHair = false;
+				dressBoneError = false;
+				dressBoneWarn = false;
+				isHair = false;
 				UpdateBoneList();
 			}
 
-			if (m_dress == null)
+			if (dress == null)
 				return;
 
-			if (m_dressBoneError) {
+			if (dressBoneError) {
 				EditorGUILayout.HelpBox("服のボーンを取得することができませんでした\n上の欄にArmatureやメッシュを設定している場合は、服のルートオブジェクトを設定してください", MessageType.Error, true);
 				return;
 			}
 
-			if (m_dressBoneWarn)
+			if (dressBoneWarn)
 				EditorGUILayout.HelpBox("服のボーンを一部取得することができませんでした。\n調整時にうまく動かない場合、ボーン詳細設定を確認してください", MessageType.Warning, true);
 
-			m_boneDetail = GUILayout.Toggle(m_boneDetail, "ボーン詳細設定");
-			if (m_boneDetail) {
+			boneDetail = GUILayout.Toggle(boneDetail, "ボーン詳細設定");
+			if (boneDetail) {
 				CreateBoneSettingsUI();
 			}
 
 			GUILayout.Space(20);
 
-			if (m_isHair) {
+			if (isHair) {
 				GUILayout.Label("髪の調整です", EditorStyles.miniLabel);
 				CreateHeadUI();
 			} else {
-				m_selectedTabNumber = GUILayout.Toolbar(m_selectedTabNumber, new string[] { "全体", "上半身", "下半身" }, EditorStyles.toolbarButton);
-				switch (m_selectedTabNumber) {
+				selectedTabNumber = GUILayout.Toolbar(selectedTabNumber, new string[] { "全体", "上半身", "下半身" }, EditorStyles.toolbarButton);
+				switch (selectedTabNumber) {
 					case 0:
 						GUILayout.Label("全体の調整です", EditorStyles.miniLabel);
 						CreateFUllBodyUI();
@@ -139,7 +139,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			if (EditorGUI.EndChangeCheck()) {
 				var hips = GetTransform(HumanBodyBones.Hips);
-				hips.position = m_defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
+				hips.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -161,7 +161,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null) {
-					spine.rotation = m_defaultSpineQuat;
+					spine.rotation = defaultSpineQuat;
 					spine.Rotate(spine.right, spineRotate.Value);
 				}
 			}
@@ -183,7 +183,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (left != null) {
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					left.rotation = m_defaultLArmQuat;
+					left.rotation = defaultLArmQuat;
 
 					left.Rotate(new Vector3(0, 0, 1), armRotateZ.Value*-1, Space.World);
 					left.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
@@ -192,7 +192,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null) {
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					right.rotation = m_defaultRArmQuat;
+					right.rotation = defaultRArmQuat;
 
 					right.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
 					right.Rotate(new Vector3(0, 1, 0), armRotateZ.Value * -1, Space.World);
@@ -255,7 +255,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				if (left != null) {
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					left.rotation = m_defaultLLegQuat;
+					left.rotation = defaultLLegQuat;
 
 					left.Rotate(left.forward, legRotateZ.Value * -1);
 					left.Rotate(left.right, legRotate.Value * -1);
@@ -264,7 +264,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
 				if (right != null) {
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					right.rotation = m_defaultRLegQuat;
+					right.rotation = defaultRLegQuat;
 
 					right.Rotate(right.forward, legRotateZ.Value);
 					right.Rotate(right.right, legRotate.Value * -1);
@@ -310,7 +310,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			hipsPosZ.ButtonAndSliderGui(0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
-				m_armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
+				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -320,93 +320,93 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("拡大縮小");
 			hipScaleX.ButtonAndSliderGui(1.0f, 0.5f, 2.0f);
 			if (EditorGUI.EndChangeCheck()) {
-				m_armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 			}
 		}
 
 		//セットされたものからボーン構造を作る
 		void UpdateBoneList()
 		{
-			m_boneList.Clear();
+			boneList.Clear();
 
-			if (m_dress == null)
+			if (dress == null)
 				return;
 
-			m_armature = FindBone(HumanBodyBones.Hips, m_dress.transform, "armature|root|skelton");
-			if (m_armature == null) {
-				m_dressBoneError = true;
+			armature = FindBone(HumanBodyBones.Hips, dress.transform, "armature|root|skelton");
+			if (armature == null) {
+				dressBoneError = true;
 				return;
 			}
 
 			//Humanoidなら取れる限りとってみる
-			var dressAnim = m_dress.GetComponent<Animator>();
+			var dressAnim = dress.GetComponent<Animator>();
 			if (dressAnim != null && dressAnim.isHuman) {
 				for (int i = (int)HumanBodyBones.Hips; i <= (int)HumanBodyBones.RightToes; i++)
-					m_boneList[(HumanBodyBones)i] = dressAnim.GetBoneTransform((HumanBodyBones)i);
+					boneList[(HumanBodyBones)i] = dressAnim.GetBoneTransform((HumanBodyBones)i);
 			}
 
-			if(m_boneList[HumanBodyBones.Hips] == null)
-				m_boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,m_armature, "hip");
+			if(boneList[HumanBodyBones.Hips] == null)
+				boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,armature, "hip");
 
-			if (m_boneList[HumanBodyBones.Hips] == null) {
+			if (boneList[HumanBodyBones.Hips] == null) {
 				//頭すげ替えか髪の毛用
-				if (FindBone(HumanBodyBones.Neck, m_armature, "neck")) {
-					m_boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, m_armature, "neck");
-					m_boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, m_boneList[HumanBodyBones.Neck], "head");
-					m_isHair = true;
-				} else if (FindBone(HumanBodyBones.Head, m_armature, "head")) {
-					m_boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, m_armature, "head");
-					m_isHair = true;
+				if (FindBone(HumanBodyBones.Neck, armature, "neck")) {
+					boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, armature, "neck");
+					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], "head");
+					isHair = true;
+				} else if (FindBone(HumanBodyBones.Head, armature, "head")) {
+					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, armature, "head");
+					isHair = true;
 				} else {
-					m_dressBoneError = true;
+					dressBoneError = true;
 					return;
 				}
 			}
 
-			m_dressBoneError = false;
+			dressBoneError = false;
 
-			m_boneList[HumanBodyBones.Spine] = FindBone(HumanBodyBones.Spine, m_boneList[HumanBodyBones.Hips], "spine");
-			m_boneList[HumanBodyBones.Chest] = FindBone(HumanBodyBones.Chest, m_boneList[HumanBodyBones.Spine], "chest");
+			boneList[HumanBodyBones.Spine] = FindBone(HumanBodyBones.Spine, boneList[HumanBodyBones.Hips], "spine");
+			boneList[HumanBodyBones.Chest] = FindBone(HumanBodyBones.Chest, boneList[HumanBodyBones.Spine], "chest");
 
 			//UpperChestあったらHeadとShoulderはそっちから拾う
-			var upperChest = FindBone(HumanBodyBones.UpperChest, m_boneList[HumanBodyBones.Chest], "upper");
-			m_boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck,
-				(upperChest) ? upperChest : m_boneList[HumanBodyBones.Chest], "neck");
-			m_boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, m_boneList[HumanBodyBones.Neck], "head");
+			var upperChest = FindBone(HumanBodyBones.UpperChest, boneList[HumanBodyBones.Chest], "upper");
+			boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck,
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], "neck");
+			boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], "head");
 
 			//左腕
-			m_boneList[HumanBodyBones.LeftShoulder] = FindBone(HumanBodyBones.LeftShoulder,
-				(upperChest) ? upperChest : m_boneList[HumanBodyBones.Chest], "shoulder", LEFT);
-			m_boneList[HumanBodyBones.LeftUpperArm] = FindBone(HumanBodyBones.LeftUpperArm, m_boneList[HumanBodyBones.LeftShoulder], "upper|arm");
-			m_boneList[HumanBodyBones.LeftLowerArm] = FindBone(HumanBodyBones.LeftLowerArm, m_boneList[HumanBodyBones.LeftUpperArm], "lower|elbow");
-			m_boneList[HumanBodyBones.LeftHand] = FindBone(HumanBodyBones.LeftHand, m_boneList[HumanBodyBones.LeftLowerArm], "hand|wrist");
+			boneList[HumanBodyBones.LeftShoulder] = FindBone(HumanBodyBones.LeftShoulder,
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], "shoulder", LEFT);
+			boneList[HumanBodyBones.LeftUpperArm] = FindBone(HumanBodyBones.LeftUpperArm, boneList[HumanBodyBones.LeftShoulder], "upper|arm");
+			boneList[HumanBodyBones.LeftLowerArm] = FindBone(HumanBodyBones.LeftLowerArm, boneList[HumanBodyBones.LeftUpperArm], "lower|elbow");
+			boneList[HumanBodyBones.LeftHand] = FindBone(HumanBodyBones.LeftHand, boneList[HumanBodyBones.LeftLowerArm], "hand|wrist");
 
 			//右腕
-			m_boneList[HumanBodyBones.RightShoulder] = FindBone(HumanBodyBones.RightShoulder,
-				(upperChest) ? upperChest : m_boneList[HumanBodyBones.Chest], "shoulder", RIGHT);
-			m_boneList[HumanBodyBones.RightUpperArm] = FindBone(HumanBodyBones.RightUpperArm, m_boneList[HumanBodyBones.RightShoulder], "upper|arm");
-			m_boneList[HumanBodyBones.RightLowerArm] = FindBone(HumanBodyBones.RightLowerArm, m_boneList[HumanBodyBones.RightUpperArm], "lower|elbow");
-			m_boneList[HumanBodyBones.RightHand] = FindBone(HumanBodyBones.RightHand, m_boneList[HumanBodyBones.RightLowerArm], "hand|wrist");
+			boneList[HumanBodyBones.RightShoulder] = FindBone(HumanBodyBones.RightShoulder,
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], "shoulder", RIGHT);
+			boneList[HumanBodyBones.RightUpperArm] = FindBone(HumanBodyBones.RightUpperArm, boneList[HumanBodyBones.RightShoulder], "upper|arm");
+			boneList[HumanBodyBones.RightLowerArm] = FindBone(HumanBodyBones.RightLowerArm, boneList[HumanBodyBones.RightUpperArm], "lower|elbow");
+			boneList[HumanBodyBones.RightHand] = FindBone(HumanBodyBones.RightHand, boneList[HumanBodyBones.RightLowerArm], "hand|wrist");
 
 			//左足
-			m_boneList[HumanBodyBones.LeftUpperLeg] = FindBone(HumanBodyBones.LeftUpperLeg, m_boneList[HumanBodyBones.Hips], "upper|leg", LEFT);
-			m_boneList[HumanBodyBones.LeftLowerLeg] = FindBone(HumanBodyBones.LeftLowerLeg, m_boneList[HumanBodyBones.LeftUpperLeg], "lower|knee");
-			m_boneList[HumanBodyBones.LeftFoot] = FindBone(HumanBodyBones.LeftFoot, m_boneList[HumanBodyBones.LeftLowerLeg], "foot|ankle");
-			m_boneList[HumanBodyBones.LeftToes] = FindBone(HumanBodyBones.LeftToes, m_boneList[HumanBodyBones.LeftFoot], "toe");
+			boneList[HumanBodyBones.LeftUpperLeg] = FindBone(HumanBodyBones.LeftUpperLeg, boneList[HumanBodyBones.Hips], "upper|leg", LEFT);
+			boneList[HumanBodyBones.LeftLowerLeg] = FindBone(HumanBodyBones.LeftLowerLeg, boneList[HumanBodyBones.LeftUpperLeg], "lower|knee");
+			boneList[HumanBodyBones.LeftFoot] = FindBone(HumanBodyBones.LeftFoot, boneList[HumanBodyBones.LeftLowerLeg], "foot|ankle");
+			boneList[HumanBodyBones.LeftToes] = FindBone(HumanBodyBones.LeftToes, boneList[HumanBodyBones.LeftFoot], "toe");
 
 			//右足
-			m_boneList[HumanBodyBones.RightUpperLeg] = FindBone(HumanBodyBones.RightUpperLeg, m_boneList[HumanBodyBones.Hips], "upper|leg", RIGHT);
-			m_boneList[HumanBodyBones.RightLowerLeg] = FindBone(HumanBodyBones.RightLowerLeg, m_boneList[HumanBodyBones.RightUpperLeg], "lower|knee");
-			m_boneList[HumanBodyBones.RightFoot] = FindBone(HumanBodyBones.RightFoot, m_boneList[HumanBodyBones.RightLowerLeg], "foot|ankle");
-			m_boneList[HumanBodyBones.RightToes] = FindBone(HumanBodyBones.RightToes, m_boneList[HumanBodyBones.RightFoot], "toe");
+			boneList[HumanBodyBones.RightUpperLeg] = FindBone(HumanBodyBones.RightUpperLeg, boneList[HumanBodyBones.Hips], "upper|leg", RIGHT);
+			boneList[HumanBodyBones.RightLowerLeg] = FindBone(HumanBodyBones.RightLowerLeg, boneList[HumanBodyBones.RightUpperLeg], "lower|knee");
+			boneList[HumanBodyBones.RightFoot] = FindBone(HumanBodyBones.RightFoot, boneList[HumanBodyBones.RightLowerLeg], "foot|ankle");
+			boneList[HumanBodyBones.RightToes] = FindBone(HumanBodyBones.RightToes, boneList[HumanBodyBones.RightFoot], "toe");
 
-			if (m_boneList[HumanBodyBones.Spine] == null ||
-				m_boneList[HumanBodyBones.Chest] == null ||
-				m_boneList[HumanBodyBones.LeftShoulder] == null ||
-				m_boneList[HumanBodyBones.RightShoulder] == null ||
-				m_boneList[HumanBodyBones.LeftUpperLeg] == null ||
-				m_boneList[HumanBodyBones.RightUpperLeg] == null)
-				m_dressBoneWarn = true && !m_isHair;
+			if (boneList[HumanBodyBones.Spine] == null ||
+				boneList[HumanBodyBones.Chest] == null ||
+				boneList[HumanBodyBones.LeftShoulder] == null ||
+				boneList[HumanBodyBones.RightShoulder] == null ||
+				boneList[HumanBodyBones.LeftUpperLeg] == null ||
+				boneList[HumanBodyBones.RightUpperLeg] == null)
+				dressBoneWarn = true && !isHair;
 
 			SetDefaultQuaternion();
 		}
@@ -427,19 +427,19 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			spineRotate.Value = 0;
 
 			if (GetTransform(HumanBodyBones.LeftUpperArm) != null)
-				m_defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
+				defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperArm) != null)
-				m_defaultRArmQuat = GetTransform(HumanBodyBones.RightUpperArm).rotation;
+				defaultRArmQuat = GetTransform(HumanBodyBones.RightUpperArm).rotation;
 
 			if (GetTransform(HumanBodyBones.Hips) != null)
-				m_defaultHipsPos = GetTransform(HumanBodyBones.Hips).position;
+				defaultHipsPos = GetTransform(HumanBodyBones.Hips).position;
 			if (GetTransform(HumanBodyBones.Spine) != null)
-				m_defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
+				defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
 
 			if (GetTransform(HumanBodyBones.LeftUpperLeg) != null)
-				m_defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
+				defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperLeg) != null)
-				m_defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
+				defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
 		}
 
 		[Serializable]

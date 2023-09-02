@@ -15,13 +15,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 	{
 		Transform GetTransform(HumanBodyBones bone)
 		{
-			return m_boneList[bone];
+			return boneList[bone];
 		}
 
 		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern)
 		{
-			if (m_boneList[bone] != null)
-				return m_boneList[bone];
+			if (boneList[bone] != null)
+				return boneList[bone];
 
 			if (parent == null)
 				return null;
@@ -35,8 +35,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern, int side)
 		{
-			if (m_boneList[bone] != null)
-				return m_boneList[bone];
+			if (boneList[bone] != null)
+				return boneList[bone];
 
 			if (parent == null)
 				return null;
