@@ -5,6 +5,7 @@ Released under the MIT license
 https://opensource.org/licenses/mit-license.php
 */
 
+using System;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			return null;
 		}
 
-		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern, int side)
+		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern, Side side)
 		{
 			if (boneList[bone] != null)
 				return boneList[bone];
@@ -44,8 +45,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			Transform hit1 = null;
 			Transform hit2 = null;
 
-			foreach (Transform child in parent) {
-				if (Regex.IsMatch(child.name, matchPattern, RegexOptions.IgnoreCase)) {
+			foreach (Transform child in parent)
+			{
+				if (Regex.IsMatch(child.name, matchPattern, RegexOptions.IgnoreCase))
+				{
 					if (hit1 == null)
 						hit1 = child;
 					else
@@ -56,19 +59,23 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (hit1 == null || hit2 == null)
 				return null;
 
-			if (side == RIGHT) {
-				if (hit1.position.x > hit2.position.x)
-					return hit1;
-				else
-					return hit2;
-			} else if (side == LEFT) {
-				if (hit1.position.x < hit2.position.x)
-					return hit1;
-				else
-					return hit2;
+			switch (side)
+			{
+				case Side.Right:
+					return hit1.position.x > hit2.position.x ? hit1 : hit2;
+				case Side.Left:
+					return hit1.position.x < hit2.position.x ? hit1 : hit2;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(side), side, null);
 			}
 
 			return null;
+		}
+
+		enum Side
+		{
+			Right,
+			Left,
 		}
 	}
 }
