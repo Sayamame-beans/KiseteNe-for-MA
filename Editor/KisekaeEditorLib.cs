@@ -20,7 +20,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		Transform FindBone(HumanBodyBones bone, Transform parent, string matchPattern)
 		{
-			if (m_boneList.ContainsKey(bone) && m_boneList[bone] != null)
+			if (m_boneList[bone] != null)
 				return m_boneList[bone];
 
 			if (parent == null)

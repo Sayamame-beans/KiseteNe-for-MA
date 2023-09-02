@@ -5,7 +5,7 @@ Released under the MIT license
 https://opensource.org/licenses/mit-license.php
 */
 
-using System.Collections.Generic;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -16,7 +16,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		GameObject m_dress;
 
 		Transform m_armature;
-		Dictionary<HumanBodyBones, Transform> m_boneList = new Dictionary<HumanBodyBones, Transform>();
+		HumanBodyBonesToDictionaryMapping m_boneList = new HumanBodyBonesToDictionaryMapping();
 
 		bool m_boneDetail = false;
 		int m_selectedTabNumber = 0;
@@ -350,8 +350,6 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		void UpdateBoneList()
 		{
 			m_boneList.Clear();
-			for (int i = 0; i <= 20; i++)
-				m_boneList.Add((HumanBodyBones)i, null);
 
 			if (m_dress == null)
 				return;
@@ -459,6 +457,20 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				m_defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperLeg) != null)
 				m_defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
+		}
+
+		[Serializable]
+		class HumanBodyBonesToDictionaryMapping
+		{
+			[SerializeField] private Transform[] backedArray = new Transform[(int)HumanBodyBones.LastBone];
+
+			public ref Transform this[HumanBodyBones humanBodyBones] => ref backedArray[(int)humanBodyBones];
+
+			public void Clear()
+			{
+				for (var i = 0; i < backedArray.Length; i++)
+					backedArray[i] = null;
+			}
 		}
 	}
 }
