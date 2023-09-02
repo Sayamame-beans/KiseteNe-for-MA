@@ -112,14 +112,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("上下");
-			CreateButtonUI(ref m_hipsPos.y, 0.0f);
-			m_hipsPos.y = EditorGUILayout.Slider(m_hipsPos.y, -1, 1);
+			ButtonAndSliderGui(ref m_hipsPos.y, 0.0f, -1, 1);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("前後");
-			CreateButtonUI(ref m_hipsPos.z, 0.0f);
-			m_hipsPos.z = EditorGUILayout.Slider(m_hipsPos.z, -1, 1);
+			ButtonAndSliderGui(ref m_hipsPos.z, 0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var hips = GetTransform(HumanBodyBones.Hips);
@@ -131,8 +129,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			CreateButtonUI(ref m_hipScale.x, 1.0f);
-			m_hipScale.x = EditorGUILayout.Slider(m_hipScale.x, 0.5f, 1.5f);
+			ButtonAndSliderGui(ref m_hipScale.x, 1.0f, 0.5f, 1.5f);
 			if (EditorGUI.EndChangeCheck()) {
 				m_hipScale.y = m_hipScale.z = m_hipScale.x;
 				var hips = GetTransform(HumanBodyBones.Hips);
@@ -143,8 +140,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			EditorGUI.BeginChangeCheck();
 			GUILayout.Label("お辞儀");
-			CreateButtonUI(ref m_SpineRotate, 0.0f, 10);
-			m_SpineRotate = EditorGUILayout.Slider(m_SpineRotate, -20, 20);
+			ButtonAndSliderGui(ref m_SpineRotate, 0.0f, -20, 20, paramRatio: 10);
 			if (EditorGUI.EndChangeCheck()) {
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null) {
@@ -159,14 +155,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("腕を上げる");
-			CreateButtonUI(ref m_armRotate.z, 0.0f, 10);
-			m_armRotate.z = EditorGUILayout.Slider(m_armRotate.z, -50, 50);
+			ButtonAndSliderGui(ref m_armRotate.z, 0.0f, -50, 50, paramRatio: 10);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("腕を前に出す");
-			CreateButtonUI(ref m_armRotate.y, 0.0f, 10);
-			m_armRotate.y = EditorGUILayout.Slider(m_armRotate.y, -15, 15);
+			ButtonAndSliderGui(ref m_armRotate.y, 0.0f, -15, 15, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
@@ -192,13 +186,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を伸ばす");
-			CreateButtonUI(ref m_armScale.y, 1.0f);
-			m_armScale.y = EditorGUILayout.Slider(m_armScale.y, 0.5f, 1.5f);
+			ButtonAndSliderGui(ref m_armScale.y, 1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を太くする");
-			CreateButtonUI(ref m_armScale.x, 1.0f);
-			m_armScale.x = EditorGUILayout.Slider(m_armScale.x, 0.5f, 1.5f);
+			ButtonAndSliderGui(ref m_armScale.x, 1.0f, 0.5f, 1.5f);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
@@ -242,13 +234,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("足を開く");
-			CreateButtonUI(ref m_legRotate.z, 0.0f, 10);
-			m_legRotate.z = EditorGUILayout.Slider(m_legRotate.z, -10, 10);
+			ButtonAndSliderGui(ref m_legRotate.z, 0.0f, -10, 10, paramRatio: 10);
 
 			GUILayout.Space(5);
 			GUILayout.Label("足を前に出す");
-			CreateButtonUI(ref m_legRotate.y, 0.0f, 10);
-			m_legRotate.y = EditorGUILayout.Slider(m_legRotate.y, -10, 10);
+			ButtonAndSliderGui(ref m_legRotate.y, 0.0f, -10, 10, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
@@ -274,13 +264,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を伸ばす");
-			CreateButtonUI(ref m_legScale.y, 1.0f);
-			m_legScale.y = EditorGUILayout.Slider(m_legScale.y, 0.5f, 1.5f);
+			ButtonAndSliderGui(ref m_legScale.y, 1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を太くする");
-			CreateButtonUI(ref m_legScale.x, 1.0f);
-			m_legScale.x = EditorGUILayout.Slider(m_legScale.x, 0.5f, 1.5f);
+			ButtonAndSliderGui(ref m_legScale.x, 1.0f, 0.5f, 1.5f);
 
 			if (EditorGUI.EndChangeCheck()) {
 				m_legScale.z = m_legScale.x;
@@ -294,7 +282,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
-		void CreateButtonUI(ref float setParam, float paramDefault, float paramRatio = 1.0f)
+		void ButtonAndSliderGui(ref float setParam, float paramDefault, float leftValue, float rightValue, float paramRatio = 1.0f)
 		{
 			GUILayout.BeginHorizontal();
 			if (GUILayout.Button("RESET"))
@@ -313,6 +301,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				setParam += 0.01f * paramRatio;
 
 			GUILayout.EndHorizontal();
+
+			setParam = EditorGUILayout.Slider(setParam, leftValue, rightValue);
 		}
 
 		void CreateHeadUI()
@@ -320,14 +310,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("上下");
-			CreateButtonUI(ref m_hipsPos.y, 0.0f);
-			m_hipsPos.y = EditorGUILayout.Slider(m_hipsPos.y, -2, 2);
+			ButtonAndSliderGui(ref m_hipsPos.y, 0.0f, -2, 2);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("前後");
-			CreateButtonUI(ref m_hipsPos.z, 0.0f);
-			m_hipsPos.z = EditorGUILayout.Slider(m_hipsPos.z, -1, 1);
+			ButtonAndSliderGui(ref m_hipsPos.z, 0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
 				m_armature.transform.position = m_hipsPos;
@@ -338,8 +326,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			CreateButtonUI(ref m_hipScale.x, 1.0f);
-			m_hipScale.x = EditorGUILayout.Slider(m_hipScale.x, 0.5f, 2.0f);
+			ButtonAndSliderGui(ref m_hipScale.x, 1.0f, 0.5f, 2.0f);
 			if (EditorGUI.EndChangeCheck()) {
 				m_hipScale.y = m_hipScale.z = m_hipScale.x;
 				m_armature.localScale = m_hipScale;
