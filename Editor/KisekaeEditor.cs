@@ -29,14 +29,31 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		const int LEFT = 2;
 
 		//各所調整用
-		Vector3 m_armRotate = Vector3.zero;
-		Vector3 m_armScale = Vector3.one;
-		Vector3 m_hipsPos = Vector3.zero;
-		Vector3 m_hipScale = Vector3.one;
-		Vector3 m_legRotate = Vector3.zero;
-		Vector3 m_legScale = Vector3.one;
+		[SerializeField] private FloatUndoState armRotateZ;
+		[SerializeField] private FloatUndoState armRotateY;
+		[SerializeField] private FloatUndoState armScaleY;
+		[SerializeField] private FloatUndoState armScaleX;
+		[SerializeField] private FloatUndoState hipsPosY;
+		[SerializeField] private FloatUndoState hipsPosZ;
+		[SerializeField] private FloatUndoState hipScaleX;
+		[SerializeField] private FloatUndoState legRotateZ;
+		[SerializeField] private FloatUndoState legRotate;
+		[SerializeField] private FloatUndoState legScaleX;
+		[SerializeField] private FloatUndoState legScaleY;
 
-		float m_SpineRotate = 0;
+		[SerializeField] private FloatUndoState spineRotate;
+
+		public void OnEnable()
+		{
+			// Only add callback once.
+			Undo.undoRedoPerformed -= Repaint;
+			Undo.undoRedoPerformed += Repaint;
+		}
+
+		public void OnDisable()
+		{
+			Undo.undoRedoPerformed -= Repaint;
+		}
 
 		//初期値保持
 		Vector3 m_defaultHipsPos;
@@ -54,6 +71,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		void OnGUI()
 		{
+			Undo.RecordObject(this, "Kisetene");
 			GUILayout.Label("MA向け衣装調整支援ツール「キセテネ for MA」", EditorStyles.boldLabel);
 
 			GUILayout.Label("服をセットしてください", EditorStyles.largeLabel);
@@ -112,16 +130,16 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("上下");
-			ButtonAndSliderGui(ref m_hipsPos.y, 0.0f, -1, 1);
+			hipsPosY.ButtonAndSliderGui(0.0f, -1, 1);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("前後");
-			ButtonAndSliderGui(ref m_hipsPos.z, 0.0f, -1, 1);
+			hipsPosZ.ButtonAndSliderGui(0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var hips = GetTransform(HumanBodyBones.Hips);
-				hips.position = m_defaultHipsPos + m_hipsPos;
+				hips.position = m_defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -129,23 +147,22 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			ButtonAndSliderGui(ref m_hipScale.x, 1.0f, 0.5f, 1.5f);
+			hipScaleX.ButtonAndSliderGui(1.0f, 0.5f, 1.5f);
 			if (EditorGUI.EndChangeCheck()) {
-				m_hipScale.y = m_hipScale.z = m_hipScale.x;
 				var hips = GetTransform(HumanBodyBones.Hips);
-				hips.localScale = m_hipScale;
+				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 			}
 
 			GUILayout.Space(5);
 
 			EditorGUI.BeginChangeCheck();
 			GUILayout.Label("お辞儀");
-			ButtonAndSliderGui(ref m_SpineRotate, 0.0f, -20, 20, paramRatio: 10);
+			spineRotate.ButtonAndSliderGui(0.0f, -20, 20, paramRatio: 10);
 			if (EditorGUI.EndChangeCheck()) {
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null) {
 					spine.rotation = m_defaultSpineQuat;
-					spine.Rotate(spine.right, m_SpineRotate);
+					spine.Rotate(spine.right, spineRotate.Value);
 				}
 			}
 		}
@@ -155,12 +172,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("腕を上げる");
-			ButtonAndSliderGui(ref m_armRotate.z, 0.0f, -50, 50, paramRatio: 10);
+			armRotateZ.ButtonAndSliderGui(0.0f, -50, 50, paramRatio: 10);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("腕を前に出す");
-			ButtonAndSliderGui(ref m_armRotate.y, 0.0f, -15, 15, paramRatio: 10);
+			armRotateY.ButtonAndSliderGui(0.0f, -15, 15, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
@@ -168,8 +185,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					left.rotation = m_defaultLArmQuat;
 
-					left.Rotate(new Vector3(0, 0, 1), m_armRotate.z*-1, Space.World);
-					left.Rotate(new Vector3(0, 1, 0), m_armRotate.y, Space.World);
+					left.Rotate(new Vector3(0, 0, 1), armRotateZ.Value*-1, Space.World);
+					left.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
@@ -177,8 +194,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					right.rotation = m_defaultRArmQuat;
 
-					right.Rotate(new Vector3(0, 0, 1), m_armRotate.z, Space.World);
-					right.Rotate(new Vector3(0, 1, 0), m_armRotate.y * -1, Space.World);
+					right.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
+					right.Rotate(new Vector3(0, 1, 0), armRotateZ.Value * -1, Space.World);
 				}
 			}
 
@@ -186,26 +203,23 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を伸ばす");
-			ButtonAndSliderGui(ref m_armScale.y, 1.0f, 0.5f, 1.5f);
+			armScaleY.ButtonAndSliderGui(1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を太くする");
-			ButtonAndSliderGui(ref m_armScale.x, 1.0f, 0.5f, 1.5f);
+			armScaleX.ButtonAndSliderGui(1.0f, 0.5f, 1.5f);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (left != null) {
 					if (Mathf.Abs(left.forward.y) > Mathf.Abs(left.forward.z)) {
-						m_armScale.z = m_armScale.x;
-						left.localScale = m_armScale;
+						left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 					} else {
 						//軸が違うのでxyを入れ替える
 						if (left.forward.z > 0) {
-							Vector3 tmpScale = new Vector3(m_armScale.y, m_armScale.x, m_armScale.x);
-							left.localScale = tmpScale;
+							left.localScale = new Vector3(armScaleY.Value, armScaleX.Value, armScaleX.Value);
 						} else {
-							Vector3 tmpScale = new Vector3(m_armScale.x, m_armScale.y, m_armScale.x);
-							left.localScale = tmpScale;
+							left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 						}
 					}
 				}
@@ -213,16 +227,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null) {
 					if (Mathf.Abs(right.forward.y) > Mathf.Abs(right.forward.z)) {
-						m_armScale.z = m_armScale.x;
-						right.localScale = m_armScale;
+						right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 					} else {
 						//軸が違うのでxyを入れ替える
 						if (right.forward.z > 0) {
-							Vector3 tmpScale = new Vector3(m_armScale.y, m_armScale.x, m_armScale.x);
-							right.localScale = tmpScale;
+							right.localScale = new Vector3(armScaleY.Value, armScaleX.Value, armScaleX.Value);
 						} else {
-							Vector3 tmpScale = new Vector3(m_armScale.x, m_armScale.y, m_armScale.x);
-							right.localScale = tmpScale;
+							right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 						}
 					}
 				}
@@ -234,11 +245,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("足を開く");
-			ButtonAndSliderGui(ref m_legRotate.z, 0.0f, -10, 10, paramRatio: 10);
+			legRotateZ.ButtonAndSliderGui(0.0f, -10, 10, paramRatio: 10);
 
 			GUILayout.Space(5);
 			GUILayout.Label("足を前に出す");
-			ButtonAndSliderGui(ref m_legRotate.y, 0.0f, -10, 10, paramRatio: 10);
+			legRotate.ButtonAndSliderGui(0.0f, -10, 10, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
@@ -246,8 +257,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					left.rotation = m_defaultLLegQuat;
 
-					left.Rotate(left.forward, m_legRotate.z * -1);
-					left.Rotate(left.right, m_legRotate.y * -1);
+					left.Rotate(left.forward, legRotateZ.Value * -1);
+					left.Rotate(left.right, legRotate.Value * -1);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
@@ -255,8 +266,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					right.rotation = m_defaultRLegQuat;
 
-					right.Rotate(right.forward, m_legRotate.z);
-					right.Rotate(right.right, m_legRotate.y * -1);
+					right.Rotate(right.forward, legRotateZ.Value);
+					right.Rotate(right.right, legRotate.Value * -1);
 				}
 			}
 
@@ -264,45 +275,26 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を伸ばす");
-			ButtonAndSliderGui(ref m_legScale.y, 1.0f, 0.5f, 1.5f);
+			legScaleY.ButtonAndSliderGui(1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を太くする");
-			ButtonAndSliderGui(ref m_legScale.x, 1.0f, 0.5f, 1.5f);
+			legScaleX.ButtonAndSliderGui(1.0f, 0.5f, 1.5f);
 
-			if (EditorGUI.EndChangeCheck()) {
-				m_legScale.z = m_legScale.x;
+			if (EditorGUI.EndChangeCheck())
+			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
 				if (left != null)
-					left.localScale = m_legScale;
+				{
+					left.localScale = new Vector3(legScaleX.Value, 1, legScaleX.Value);
+				}
 
 				if (right != null)
-					right.localScale = m_legScale;
+				{
+					right.localScale = new Vector3(legScaleX.Value, 1, legScaleX.Value);
+				}
 			}
-		}
-
-		void ButtonAndSliderGui(ref float setParam, float paramDefault, float leftValue, float rightValue, float paramRatio = 1.0f)
-		{
-			GUILayout.BeginHorizontal();
-			if (GUILayout.Button("RESET"))
-				setParam = paramDefault;
-
-			if (GUILayout.Button("--", EditorStyles.miniButtonLeft, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam -= 0.01f * paramRatio;
-
-			if (GUILayout.Button("-", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam -= 0.001f * paramRatio;
-
-			if (GUILayout.Button("+", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam += 0.001f * paramRatio;
-
-			if (GUILayout.Button("++", EditorStyles.miniButtonRight, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam += 0.01f * paramRatio;
-
-			GUILayout.EndHorizontal();
-
-			setParam = EditorGUILayout.Slider(setParam, leftValue, rightValue);
 		}
 
 		void CreateHeadUI()
@@ -310,15 +302,15 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("上下");
-			ButtonAndSliderGui(ref m_hipsPos.y, 0.0f, -2, 2);
+			hipsPosY.ButtonAndSliderGui(0.0f, -2, 2);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("前後");
-			ButtonAndSliderGui(ref m_hipsPos.z, 0.0f, -1, 1);
+			hipsPosZ.ButtonAndSliderGui(0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
-				m_armature.transform.position = m_hipsPos;
+				m_armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -326,10 +318,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			ButtonAndSliderGui(ref m_hipScale.x, 1.0f, 0.5f, 2.0f);
+			hipScaleX.ButtonAndSliderGui(1.0f, 0.5f, 2.0f);
 			if (EditorGUI.EndChangeCheck()) {
-				m_hipScale.y = m_hipScale.z = m_hipScale.x;
-				m_armature.localScale = m_hipScale;
+				m_armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 			}
 		}
 
@@ -422,13 +413,18 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		void SetDefaultQuaternion()
 		{
-			m_armRotate = Vector3.zero;
-			m_hipsPos = Vector3.zero;
-			m_legRotate = Vector3.zero;
-			m_armScale = Vector3.one;
-			m_hipScale = Vector3.one;
-			m_legScale = Vector3.one;
-			m_SpineRotate = 0;
+			armRotateZ.Value = 0;
+			armRotateY.Value = 0;
+			hipsPosY.Value = 0;
+			hipsPosZ.Value = 0;
+			legRotateZ.Value = 0;
+			legRotate.Value = 0;
+			armScaleX.Value = 1;
+			armScaleY.Value = 1;
+			hipScaleX.Value = 1;
+			legScaleX.Value = 1;
+			legScaleY.Value = 1;
+			spineRotate.Value = 0;
 
 			if (GetTransform(HumanBodyBones.LeftUpperArm) != null)
 				m_defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
@@ -457,6 +453,59 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			{
 				for (var i = 0; i < backedArray.Length; i++)
 					backedArray[i] = null;
+			}
+		}
+
+		[Serializable]
+		struct FloatUndoState
+		{
+			public float Value
+			{
+				get => value;
+				set => _knownValue = this.value = value;
+			}
+
+			[SerializeField] private float value;
+			[NonSerialized] private float _knownValue;
+			[SerializeField] private int collapseGroupId;
+			[SerializeField] private int prevGroupId;
+
+			public void ButtonAndSliderGui(float paramDefault, float leftValue, float rightValue, float paramRatio = 1.0f)
+			{
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
+				// When we detected external changes (mostly by undo/redo), GUI.changed = true
+				if (_knownValue != value) GUI.changed = true;
+
+				GUILayout.BeginHorizontal();
+				if (GUILayout.Button("RESET"))
+					_knownValue = value = paramDefault;
+
+				if (GUILayout.Button("--", EditorStyles.miniButtonLeft, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(-0.01f * paramRatio);
+
+				if (GUILayout.Button("-", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(-0.001f * paramRatio);
+
+				if (GUILayout.Button("+", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(+0.001f * paramRatio);
+
+				if (GUILayout.Button("++", EditorStyles.miniButtonRight, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(+0.01f * paramRatio);
+
+				GUILayout.EndHorizontal();
+
+				_knownValue = value = EditorGUILayout.Slider(value, leftValue, rightValue);
+			}
+
+			public void SliderButton(float diff)
+			{
+				_knownValue = value += diff;
+				var currentId = Undo.GetCurrentGroup();
+				if (prevGroupId + 1 == currentId)
+					Undo.CollapseUndoOperations(collapseGroupId);
+				else
+					collapseGroupId = currentId;
+				prevGroupId = currentId;
 			}
 		}
 	}
