@@ -77,5 +77,72 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			Right,
 			Left,
 		}
+
+		[Serializable]
+		class HumanBodyBonesToDictionaryMapping
+		{
+			[SerializeField] private Transform[] backedArray = new Transform[(int)HumanBodyBones.LastBone];
+
+			public ref Transform this[HumanBodyBones humanBodyBones] => ref backedArray[(int)humanBodyBones];
+
+			public void Clear()
+			{
+				for (var i = 0; i < backedArray.Length; i++)
+					backedArray[i] = null;
+			}
+		}
+
+		[Serializable]
+		struct FloatUndoState
+		{
+			public float Value
+			{
+				get => value;
+				set => _knownValue = this.value = value;
+			}
+
+			[SerializeField] private float value;
+			[NonSerialized] private float _knownValue;
+			[SerializeField] private int collapseGroupId;
+			[SerializeField] private int prevGroupId;
+
+			public void ButtonAndSliderGui(float paramDefault, float leftValue, float rightValue, float paramRatio = 1.0f)
+			{
+				// ReSharper disable once CompareOfFloatsByEqualityOperator
+				// When we detected external changes (mostly by undo/redo), GUI.changed = true
+				if (_knownValue != value) GUI.changed = true;
+
+				GUILayout.BeginHorizontal();
+				if (GUILayout.Button("RESET"))
+					_knownValue = value = paramDefault;
+
+				if (GUILayout.Button("--", EditorStyles.miniButtonLeft, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(-0.01f * paramRatio);
+
+				if (GUILayout.Button("-", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(-0.001f * paramRatio);
+
+				if (GUILayout.Button("+", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(+0.001f * paramRatio);
+
+				if (GUILayout.Button("++", EditorStyles.miniButtonRight, GUILayout.Height(20), GUILayout.Width(50)))
+					SliderButton(+0.01f * paramRatio);
+
+				GUILayout.EndHorizontal();
+
+				_knownValue = value = EditorGUILayout.Slider(value, leftValue, rightValue);
+			}
+
+			public void SliderButton(float diff)
+			{
+				_knownValue = value += diff;
+				var currentId = Undo.GetCurrentGroup();
+				if (prevGroupId + 1 == currentId)
+					Undo.CollapseUndoOperations(collapseGroupId);
+				else
+					collapseGroupId = currentId;
+				prevGroupId = currentId;
+			}
+		}
 	}
 }
