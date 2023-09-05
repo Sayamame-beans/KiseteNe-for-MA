@@ -92,6 +92,22 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
+		struct LazyCollapseUndoOperations
+		{
+			[SerializeField] private int collapseGroupId;
+
+			public void RequestCollapse(int groupId)
+			{
+				collapseGroupId = groupId;
+			}
+
+			public void CollapseIfRequested()
+			{
+				if (collapseGroupId != 0)
+					Undo.CollapseUndoOperations(collapseGroupId);
+			}
+		}
+
 		[Serializable]
 		struct FloatUndoState
 		{
@@ -106,39 +122,35 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			[SerializeField] private int collapseGroupId;
 			[SerializeField] private int prevGroupId;
 
-			public void ButtonAndSliderGui(float paramDefault, float leftValue, float rightValue, float paramRatio = 1.0f)
+			public void ButtonAndSliderGui(ref LazyCollapseUndoOperations collapse, float paramDefault, float leftValue, float rightValue, float paramRatio = 1.0f)
 			{
-				// ReSharper disable once CompareOfFloatsByEqualityOperator
-				// When we detected external changes (mostly by undo/redo), GUI.changed = true
-				if (_knownValue != value) GUI.changed = true;
-
 				GUILayout.BeginHorizontal();
 				if (GUILayout.Button("RESET"))
 					_knownValue = value = paramDefault;
 
 				if (GUILayout.Button("--", EditorStyles.miniButtonLeft, GUILayout.Height(20), GUILayout.Width(50)))
-					SliderButton(-0.01f * paramRatio);
+					SliderButton(-0.01f * paramRatio, ref collapse);
 
 				if (GUILayout.Button("-", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
-					SliderButton(-0.001f * paramRatio);
+					SliderButton(-0.001f * paramRatio, ref collapse);
 
 				if (GUILayout.Button("+", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
-					SliderButton(+0.001f * paramRatio);
+					SliderButton(+0.001f * paramRatio, ref collapse);
 
 				if (GUILayout.Button("++", EditorStyles.miniButtonRight, GUILayout.Height(20), GUILayout.Width(50)))
-					SliderButton(+0.01f * paramRatio);
+					SliderButton(+0.01f * paramRatio, ref collapse);
 
 				GUILayout.EndHorizontal();
 
 				_knownValue = value = EditorGUILayout.Slider(value, leftValue, rightValue);
 			}
 
-			public void SliderButton(float diff)
+			public void SliderButton(float diff, ref LazyCollapseUndoOperations collapse)
 			{
 				_knownValue = value += diff;
 				var currentId = Undo.GetCurrentGroup();
 				if (prevGroupId + 1 == currentId)
-					Undo.CollapseUndoOperations(collapseGroupId);
+					collapse.RequestCollapse(collapseGroupId);
 				else
 					collapseGroupId = currentId;
 				prevGroupId = currentId;
