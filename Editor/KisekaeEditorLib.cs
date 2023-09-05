@@ -92,6 +92,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
+		/// <summary>
+		/// We have to delay CollapseUndoOperations for RecordObject of Transform
+		/// </summary>
 		struct LazyCollapseUndoOperations
 		{
 			[SerializeField] private int collapseGroupId;
