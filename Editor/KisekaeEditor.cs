@@ -5,7 +5,8 @@ Released under the MIT license
 https://opensource.org/licenses/mit-license.php
 */
 
-using System.Collections.Generic;
+using System;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,38 +14,54 @@ namespace Sayabeans.KiseteNeForMA.Editor
 {
 	public partial class KisekaeEditor : EditorWindow
 	{
-		GameObject m_dress;
+		[SerializeField] private GameObject dress;
 
-		Transform m_armature;
-		Dictionary<HumanBodyBones, Transform> m_boneList = new Dictionary<HumanBodyBones, Transform>();
+		[SerializeField] private Transform armature;
+		[SerializeField] private HumanBodyBonesToDictionaryMapping boneList = new HumanBodyBonesToDictionaryMapping();
 
-		bool m_boneDetail = false;
-		int m_selectedTabNumber = 0;
-		Vector2 scrollPosition;
-		bool m_isHair = false;
-		bool m_dressBoneError = false;
-		bool m_dressBoneWarn = false;
-
-		const int RIGHT = 1;
-		const int LEFT = 2;
+		[SerializeField] private bool boneDetail = false;
+		[SerializeField] private int selectedTabNumber = 0;
+		[SerializeField] private Vector2 scrollPosition;
+		[SerializeField] private bool isHair = false;
+		[SerializeField] private bool dressBoneError = false;
+		[SerializeField] private bool dressBoneWarn = false;
 
 		//各所調整用
-		Vector3 m_armRotate = Vector3.zero;
-		Vector3 m_armScale = Vector3.one;
-		Vector3 m_hipsPos = Vector3.zero;
-		Vector3 m_hipScale = Vector3.one;
-		Vector3 m_legRotate = Vector3.zero;
-		Vector3 m_legScale = Vector3.one;
+		[SerializeField] private FloatUndoState armRotateZ;
+		[SerializeField] private FloatUndoState armRotateY;
+		[SerializeField] private FloatUndoState armScaleY;
+		[SerializeField] private FloatUndoState armScaleX;
+		[SerializeField] private FloatUndoState hipsPosY;
+		[SerializeField] private FloatUndoState hipsPosZ;
+		[SerializeField] private FloatUndoState hipScaleX;
+		[SerializeField] private FloatUndoState legRotateZ;
+		[SerializeField] private FloatUndoState legRotate;
+		[SerializeField] private FloatUndoState legScaleX;
+		[SerializeField] private FloatUndoState legScaleY;
 
-		float m_SpineRotate = 0;
+		[SerializeField] private FloatUndoState spineRotate;
 
 		//初期値保持
-		Vector3 m_defaultHipsPos;
-		Quaternion m_defaultLArmQuat;
-		Quaternion m_defaultRArmQuat;
-		Quaternion m_defaultSpineQuat;
-		Quaternion m_defaultLLegQuat;
-		Quaternion m_defaultRLegQuat;
+		[SerializeField] private Vector3 defaultHipsPos;
+		[SerializeField] private Quaternion defaultLArmQuat;
+		[SerializeField] private Quaternion defaultRArmQuat;
+		[SerializeField] private Quaternion defaultSpineQuat;
+		[SerializeField] private Quaternion defaultLLegQuat;
+		[SerializeField] private Quaternion defaultRLegQuat;
+
+		public void OnEnable()
+		{
+			// Only add callback once.
+			Undo.undoRedoPerformed -= Repaint;
+			Undo.undoRedoPerformed += Repaint;
+		}
+
+		public void OnDisable()
+		{
+			Undo.undoRedoPerformed -= Repaint;
+		}
+
+		private const string UndoGroupName = "KiseteNe for MA";
 
 		[MenuItem("Tools/KiseteNe for MA")]
 		public static void ShowWindow()
@@ -54,76 +71,79 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		void OnGUI()
 		{
+			Undo.RecordObject(this, UndoGroupName);
 			GUILayout.Label("MA向け衣装調整支援ツール「キセテネ for MA」", EditorStyles.boldLabel);
 
 			GUILayout.Label("服をセットしてください", EditorStyles.largeLabel);
 
 			EditorGUI.BeginChangeCheck();
-			m_dress = EditorGUILayout.ObjectField("服", m_dress, typeof(GameObject), true) as GameObject;
+			dress = EditorGUILayout.ObjectField("服", dress, typeof(GameObject), true) as GameObject;
 			if (EditorGUI.EndChangeCheck()) {
-				m_dressBoneError = false;
-				m_dressBoneWarn = false;
-				m_isHair = false;
+				dressBoneError = false;
+				dressBoneWarn = false;
+				isHair = false;
 				UpdateBoneList();
 			}
 
-			if (m_dress == null)
+			if (dress == null)
 				return;
 
-			if (m_dressBoneError) {
+			if (dressBoneError) {
 				EditorGUILayout.HelpBox("服のボーンを取得することができませんでした\n上の欄にArmatureやメッシュを設定している場合は、服のルートオブジェクトを設定してください", MessageType.Error, true);
 				return;
 			}
 
-			if (m_dressBoneWarn)
+			if (dressBoneWarn)
 				EditorGUILayout.HelpBox("服のボーンを一部取得することができませんでした。\n調整時にうまく動かない場合、ボーン詳細設定を確認してください", MessageType.Warning, true);
 
-			m_boneDetail = GUILayout.Toggle(m_boneDetail, "ボーン詳細設定");
-			if (m_boneDetail) {
+			boneDetail = GUILayout.Toggle(boneDetail, "ボーン詳細設定");
+			if (boneDetail) {
 				CreateBoneSettingsUI();
 			}
 
 			GUILayout.Space(20);
+			LazyCollapseUndoOperations collapse = default;
 
-			if (m_isHair) {
+			if (isHair) {
 				GUILayout.Label("髪の調整です", EditorStyles.miniLabel);
-				CreateHeadUI();
+				CreateHeadUI(ref collapse);
 			} else {
-				m_selectedTabNumber = GUILayout.Toolbar(m_selectedTabNumber, new string[] { "全体", "上半身", "下半身" }, EditorStyles.toolbarButton);
-				switch (m_selectedTabNumber) {
+				selectedTabNumber = GUILayout.Toolbar(selectedTabNumber, new string[] { "全体", "上半身", "下半身" }, EditorStyles.toolbarButton);
+				switch (selectedTabNumber) {
 					case 0:
 						GUILayout.Label("全体の調整です", EditorStyles.miniLabel);
-						CreateFUllBodyUI();
+						CreateFUllBodyUI(ref collapse);
 						break;
 					case 1:
 						GUILayout.Label("腕周りの調整です", EditorStyles.miniLabel);
-						CreateTopBodyUI();
+						CreateTopBodyUI(ref collapse);
 						break;
 					case 2:
 						GUILayout.Label("足周りの調整です。スカートには影響がないものもあります", EditorStyles.miniLabel);
-						CreateBottomBodyUI();
+						CreateBottomBodyUI(ref collapse);
 						break;
 				}
 			}
+
+			collapse.CollapseIfRequested();
 		}
 
-		void CreateFUllBodyUI()
+		void CreateFUllBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("上下");
-			CreateButtonUI(ref m_hipsPos.y, 0.0f);
-			m_hipsPos.y = EditorGUILayout.Slider(m_hipsPos.y, -1, 1);
+			hipsPosY.ButtonAndSliderGui(ref collapse, 0.0f, -1, 1);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("前後");
-			CreateButtonUI(ref m_hipsPos.z, 0.0f);
-			m_hipsPos.z = EditorGUILayout.Slider(m_hipsPos.z, -1, 1);
+			hipsPosZ.ButtonAndSliderGui(ref collapse, 0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var hips = GetTransform(HumanBodyBones.Hips);
-				hips.position = m_defaultHipsPos + m_hipsPos;
+				Undo.RecordObject(hips, UndoGroupName);
+				hips.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -131,60 +151,59 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			CreateButtonUI(ref m_hipScale.x, 1.0f);
-			m_hipScale.x = EditorGUILayout.Slider(m_hipScale.x, 0.5f, 1.5f);
+			hipScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 			if (EditorGUI.EndChangeCheck()) {
-				m_hipScale.y = m_hipScale.z = m_hipScale.x;
 				var hips = GetTransform(HumanBodyBones.Hips);
-				hips.localScale = m_hipScale;
+				Undo.RecordObject(hips, UndoGroupName);
+				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 			}
 
 			GUILayout.Space(5);
 
 			EditorGUI.BeginChangeCheck();
 			GUILayout.Label("お辞儀");
-			CreateButtonUI(ref m_SpineRotate, 0.0f, 10);
-			m_SpineRotate = EditorGUILayout.Slider(m_SpineRotate, -20, 20);
+			spineRotate.ButtonAndSliderGui(ref collapse, 0.0f, -20, 20, paramRatio: 10);
 			if (EditorGUI.EndChangeCheck()) {
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null) {
-					spine.rotation = m_defaultSpineQuat;
-					spine.Rotate(spine.right, m_SpineRotate);
+					Undo.RecordObject(spine, UndoGroupName);
+					spine.rotation = defaultSpineQuat;
+					spine.Rotate(spine.right, spineRotate.Value);
 				}
 			}
 		}
 
-		void CreateTopBodyUI()
+		void CreateTopBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("腕を上げる");
-			CreateButtonUI(ref m_armRotate.z, 0.0f, 10);
-			m_armRotate.z = EditorGUILayout.Slider(m_armRotate.z, -50, 50);
+			armRotateZ.ButtonAndSliderGui(ref collapse, 0.0f, -50, 50, paramRatio: 10);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("腕を前に出す");
-			CreateButtonUI(ref m_armRotate.y, 0.0f, 10);
-			m_armRotate.y = EditorGUILayout.Slider(m_armRotate.y, -15, 15);
+			armRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -15, 15, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (left != null) {
+					Undo.RecordObject(left, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					left.rotation = m_defaultLArmQuat;
+					left.rotation = defaultLArmQuat;
 
-					left.Rotate(new Vector3(0, 0, 1), m_armRotate.z*-1, Space.World);
-					left.Rotate(new Vector3(0, 1, 0), m_armRotate.y, Space.World);
+					left.Rotate(new Vector3(0, 0, 1), armRotateZ.Value*-1, Space.World);
+					left.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null) {
+					Undo.RecordObject(right, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					right.rotation = m_defaultRArmQuat;
+					right.rotation = defaultRArmQuat;
 
-					right.Rotate(new Vector3(0, 0, 1), m_armRotate.z, Space.World);
-					right.Rotate(new Vector3(0, 1, 0), m_armRotate.y * -1, Space.World);
+					right.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
+					right.Rotate(new Vector3(0, 1, 0), armRotateZ.Value * -1, Space.World);
 				}
 			}
 
@@ -192,81 +211,75 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を伸ばす");
-			CreateButtonUI(ref m_armScale.y, 1.0f);
-			m_armScale.y = EditorGUILayout.Slider(m_armScale.y, 0.5f, 1.5f);
+			armScaleY.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を太くする");
-			CreateButtonUI(ref m_armScale.x, 1.0f);
-			m_armScale.x = EditorGUILayout.Slider(m_armScale.x, 0.5f, 1.5f);
+			armScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (left != null) {
+					Undo.RecordObject(left, UndoGroupName);
 					if (Mathf.Abs(left.forward.y) > Mathf.Abs(left.forward.z)) {
-						m_armScale.z = m_armScale.x;
-						left.localScale = m_armScale;
+						left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 					} else {
 						//軸が違うのでxyを入れ替える
 						if (left.forward.z > 0) {
-							Vector3 tmpScale = new Vector3(m_armScale.y, m_armScale.x, m_armScale.x);
-							left.localScale = tmpScale;
+							left.localScale = new Vector3(armScaleY.Value, armScaleX.Value, armScaleX.Value);
 						} else {
-							Vector3 tmpScale = new Vector3(m_armScale.x, m_armScale.y, m_armScale.x);
-							left.localScale = tmpScale;
+							left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 						}
 					}
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null) {
+					Undo.RecordObject(right, UndoGroupName);
 					if (Mathf.Abs(right.forward.y) > Mathf.Abs(right.forward.z)) {
-						m_armScale.z = m_armScale.x;
-						right.localScale = m_armScale;
+						right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 					} else {
 						//軸が違うのでxyを入れ替える
 						if (right.forward.z > 0) {
-							Vector3 tmpScale = new Vector3(m_armScale.y, m_armScale.x, m_armScale.x);
-							right.localScale = tmpScale;
+							right.localScale = new Vector3(armScaleY.Value, armScaleX.Value, armScaleX.Value);
 						} else {
-							Vector3 tmpScale = new Vector3(m_armScale.x, m_armScale.y, m_armScale.x);
-							right.localScale = tmpScale;
+							right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 						}
 					}
 				}
 			}
 		}
 
-		void CreateBottomBodyUI()
+		void CreateBottomBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("足を開く");
-			CreateButtonUI(ref m_legRotate.z, 0.0f, 10);
-			m_legRotate.z = EditorGUILayout.Slider(m_legRotate.z, -10, 10);
+			legRotateZ.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
 
 			GUILayout.Space(5);
 			GUILayout.Label("足を前に出す");
-			CreateButtonUI(ref m_legRotate.y, 0.0f, 10);
-			m_legRotate.y = EditorGUILayout.Slider(m_legRotate.y, -10, 10);
+			legRotate.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck()) {
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				if (left != null) {
+					Undo.RecordObject(left, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					left.rotation = m_defaultLLegQuat;
+					left.rotation = defaultLLegQuat;
 
-					left.Rotate(left.forward, m_legRotate.z * -1);
-					left.Rotate(left.right, m_legRotate.y * -1);
+					left.Rotate(left.forward, legRotateZ.Value * -1);
+					left.Rotate(left.right, legRotate.Value * -1);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
 				if (right != null) {
+					Undo.RecordObject(right, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					right.rotation = m_defaultRLegQuat;
+					right.rotation = defaultRLegQuat;
 
-					right.Rotate(right.forward, m_legRotate.z);
-					right.Rotate(right.right, m_legRotate.y * -1);
+					right.Rotate(right.forward, legRotateZ.Value);
+					right.Rotate(right.right, legRotate.Value * -1);
 				}
 			}
 
@@ -274,63 +287,45 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を伸ばす");
-			CreateButtonUI(ref m_legScale.y, 1.0f);
-			m_legScale.y = EditorGUILayout.Slider(m_legScale.y, 0.5f, 1.5f);
+			legScaleY.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を太くする");
-			CreateButtonUI(ref m_legScale.x, 1.0f);
-			m_legScale.x = EditorGUILayout.Slider(m_legScale.x, 0.5f, 1.5f);
+			legScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
-			if (EditorGUI.EndChangeCheck()) {
-				m_legScale.z = m_legScale.x;
+			if (EditorGUI.EndChangeCheck())
+			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
 				if (left != null)
-					left.localScale = m_legScale;
+				{
+					Undo.RecordObject(left, UndoGroupName);
+					left.localScale = new Vector3(legScaleX.Value, 1, legScaleX.Value);
+				}
 
 				if (right != null)
-					right.localScale = m_legScale;
+				{
+					Undo.RecordObject(right, UndoGroupName);
+					right.localScale = new Vector3(legScaleX.Value, 1, legScaleX.Value);
+				}
 			}
 		}
 
-		void CreateButtonUI(ref float setParam, float paramDefault, float paramRatio = 1.0f)
-		{
-			GUILayout.BeginHorizontal();
-			if (GUILayout.Button("RESET"))
-				setParam = paramDefault;
-
-			if (GUILayout.Button("--", EditorStyles.miniButtonLeft, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam -= 0.01f * paramRatio;
-
-			if (GUILayout.Button("-", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam -= 0.001f * paramRatio;
-
-			if (GUILayout.Button("+", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam += 0.001f * paramRatio;
-
-			if (GUILayout.Button("++", EditorStyles.miniButtonRight, GUILayout.Height(20), GUILayout.Width(50)))
-				setParam += 0.01f * paramRatio;
-
-			GUILayout.EndHorizontal();
-		}
-
-		void CreateHeadUI()
+		void CreateHeadUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("上下");
-			CreateButtonUI(ref m_hipsPos.y, 0.0f);
-			m_hipsPos.y = EditorGUILayout.Slider(m_hipsPos.y, -2, 2);
+			hipsPosY.ButtonAndSliderGui(ref collapse, 0.0f, -2, 2);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("前後");
-			CreateButtonUI(ref m_hipsPos.z, 0.0f);
-			m_hipsPos.z = EditorGUILayout.Slider(m_hipsPos.z, -1, 1);
+			hipsPosZ.ButtonAndSliderGui(ref collapse, 0.0f, -1, 1);
 
 			if (EditorGUI.EndChangeCheck()) {
-				m_armature.transform.position = m_hipsPos;
+				Undo.RecordObject(armature, UndoGroupName);
+				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -338,127 +333,145 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			CreateButtonUI(ref m_hipScale.x, 1.0f);
-			m_hipScale.x = EditorGUILayout.Slider(m_hipScale.x, 0.5f, 2.0f);
+			hipScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 2.0f);
 			if (EditorGUI.EndChangeCheck()) {
-				m_hipScale.y = m_hipScale.z = m_hipScale.x;
-				m_armature.localScale = m_hipScale;
+				Undo.RecordObject(armature, UndoGroupName);
+				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 			}
 		}
+
+		private static readonly Regex ArmatureRegexPattern = new Regex("armature|root|skelton", RegexOptions.IgnoreCase);
+		private static readonly Regex HipsPattern = new Regex("hip", RegexOptions.IgnoreCase);
+		private static readonly Regex NeckPattern = new Regex("neck", RegexOptions.IgnoreCase);
+		private static readonly Regex HeadPattern = new Regex("head", RegexOptions.IgnoreCase);
+		private static readonly Regex SplinePattern = new Regex("spine", RegexOptions.IgnoreCase);
+		private static readonly Regex ChestPattern = new Regex("chest", RegexOptions.IgnoreCase);
+		private static readonly Regex UpperChestPattern = new Regex("upper", RegexOptions.IgnoreCase);
+		private static readonly Regex ShoulderPattern = new Regex("shoulder", RegexOptions.IgnoreCase);
+		private static readonly Regex UpperArmPattern = new Regex("upper|arm", RegexOptions.IgnoreCase);
+		private static readonly Regex LowerArmPattern = new Regex("lower|elbow", RegexOptions.IgnoreCase);
+		private static readonly Regex HandPattern = new Regex("hand|wrist", RegexOptions.IgnoreCase);
+		private static readonly Regex UpperLegPattern = new Regex("upper|leg", RegexOptions.IgnoreCase);
+		private static readonly Regex LowerLegPattern = new Regex("lower|knee", RegexOptions.IgnoreCase);
+		private static readonly Regex FootPattern = new Regex("foot|ankle", RegexOptions.IgnoreCase);
+		private static readonly Regex ToesPattern = new Regex("toe", RegexOptions.IgnoreCase);
 
 		//セットされたものからボーン構造を作る
 		void UpdateBoneList()
 		{
-			m_boneList.Clear();
-			for (int i = 0; i <= 20; i++)
-				m_boneList.Add((HumanBodyBones)i, null);
+			boneList.Clear();
 
-			if (m_dress == null)
+			if (dress == null)
 				return;
 
-			m_armature = FindBone(HumanBodyBones.Hips, m_dress.transform, "armature|root|skelton");
-			if (m_armature == null) {
-				m_dressBoneError = true;
+			armature = FindBone(HumanBodyBones.Hips, dress.transform, ArmatureRegexPattern);
+			if (armature == null) {
+				dressBoneError = true;
 				return;
 			}
 
 			//Humanoidなら取れる限りとってみる
-			var dressAnim = m_dress.GetComponent<Animator>();
+			var dressAnim = dress.GetComponent<Animator>();
 			if (dressAnim != null && dressAnim.isHuman) {
 				for (int i = (int)HumanBodyBones.Hips; i <= (int)HumanBodyBones.RightToes; i++)
-					m_boneList[(HumanBodyBones)i] = dressAnim.GetBoneTransform((HumanBodyBones)i);
+					boneList[(HumanBodyBones)i] = dressAnim.GetBoneTransform((HumanBodyBones)i);
 			}
 
-			if(m_boneList[HumanBodyBones.Hips] == null)
-				m_boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,m_armature, "hip");
+			if(boneList[HumanBodyBones.Hips] == null)
+				boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,armature, HipsPattern);
 
-			if (m_boneList[HumanBodyBones.Hips] == null) {
+			if (boneList[HumanBodyBones.Hips] == null) {
 				//頭すげ替えか髪の毛用
-				if (FindBone(HumanBodyBones.Neck, m_armature, "neck")) {
-					m_boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, m_armature, "neck");
-					m_boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, m_boneList[HumanBodyBones.Neck], "head");
-					m_isHair = true;
-				} else if (FindBone(HumanBodyBones.Head, m_armature, "head")) {
-					m_boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, m_armature, "head");
-					m_isHair = true;
+				if (FindBone(HumanBodyBones.Neck, armature, NeckPattern)) {
+					boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, armature, NeckPattern);
+					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], HeadPattern);
+					isHair = true;
+				} else if (FindBone(HumanBodyBones.Head, armature, HeadPattern)) {
+					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, armature, HeadPattern);
+					isHair = true;
 				} else {
-					m_dressBoneError = true;
+					dressBoneError = true;
 					return;
 				}
 			}
 
-			m_dressBoneError = false;
+			dressBoneError = false;
 
-			m_boneList[HumanBodyBones.Spine] = FindBone(HumanBodyBones.Spine, m_boneList[HumanBodyBones.Hips], "spine");
-			m_boneList[HumanBodyBones.Chest] = FindBone(HumanBodyBones.Chest, m_boneList[HumanBodyBones.Spine], "chest");
+			boneList[HumanBodyBones.Spine] = FindBone(HumanBodyBones.Spine, boneList[HumanBodyBones.Hips], SplinePattern);
+			boneList[HumanBodyBones.Chest] = FindBone(HumanBodyBones.Chest, boneList[HumanBodyBones.Spine], ChestPattern);
 
 			//UpperChestあったらHeadとShoulderはそっちから拾う
-			var upperChest = FindBone(HumanBodyBones.UpperChest, m_boneList[HumanBodyBones.Chest], "upper");
-			m_boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck,
-				(upperChest) ? upperChest : m_boneList[HumanBodyBones.Chest], "neck");
-			m_boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, m_boneList[HumanBodyBones.Neck], "head");
+			var upperChest = FindBone(HumanBodyBones.UpperChest, boneList[HumanBodyBones.Chest], UpperChestPattern);
+			boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck,
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], NeckPattern);
+			boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], HeadPattern);
 
 			//左腕
-			m_boneList[HumanBodyBones.LeftShoulder] = FindBone(HumanBodyBones.LeftShoulder,
-				(upperChest) ? upperChest : m_boneList[HumanBodyBones.Chest], "shoulder", LEFT);
-			m_boneList[HumanBodyBones.LeftUpperArm] = FindBone(HumanBodyBones.LeftUpperArm, m_boneList[HumanBodyBones.LeftShoulder], "upper|arm");
-			m_boneList[HumanBodyBones.LeftLowerArm] = FindBone(HumanBodyBones.LeftLowerArm, m_boneList[HumanBodyBones.LeftUpperArm], "lower|elbow");
-			m_boneList[HumanBodyBones.LeftHand] = FindBone(HumanBodyBones.LeftHand, m_boneList[HumanBodyBones.LeftLowerArm], "hand|wrist");
+			boneList[HumanBodyBones.LeftShoulder] = FindBone(HumanBodyBones.LeftShoulder,
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], ShoulderPattern, Side.Left);
+			boneList[HumanBodyBones.LeftUpperArm] = FindBone(HumanBodyBones.LeftUpperArm, boneList[HumanBodyBones.LeftShoulder], UpperArmPattern);
+			boneList[HumanBodyBones.LeftLowerArm] = FindBone(HumanBodyBones.LeftLowerArm, boneList[HumanBodyBones.LeftUpperArm], LowerArmPattern);
+			boneList[HumanBodyBones.LeftHand] = FindBone(HumanBodyBones.LeftHand, boneList[HumanBodyBones.LeftLowerArm], HandPattern);
 
 			//右腕
-			m_boneList[HumanBodyBones.RightShoulder] = FindBone(HumanBodyBones.RightShoulder,
-				(upperChest) ? upperChest : m_boneList[HumanBodyBones.Chest], "shoulder", RIGHT);
-			m_boneList[HumanBodyBones.RightUpperArm] = FindBone(HumanBodyBones.RightUpperArm, m_boneList[HumanBodyBones.RightShoulder], "upper|arm");
-			m_boneList[HumanBodyBones.RightLowerArm] = FindBone(HumanBodyBones.RightLowerArm, m_boneList[HumanBodyBones.RightUpperArm], "lower|elbow");
-			m_boneList[HumanBodyBones.RightHand] = FindBone(HumanBodyBones.RightHand, m_boneList[HumanBodyBones.RightLowerArm], "hand|wrist");
+			boneList[HumanBodyBones.RightShoulder] = FindBone(HumanBodyBones.RightShoulder,
+				(upperChest) ? upperChest : boneList[HumanBodyBones.Chest], ShoulderPattern, Side.Right);
+			boneList[HumanBodyBones.RightUpperArm] = FindBone(HumanBodyBones.RightUpperArm, boneList[HumanBodyBones.RightShoulder], UpperArmPattern);
+			boneList[HumanBodyBones.RightLowerArm] = FindBone(HumanBodyBones.RightLowerArm, boneList[HumanBodyBones.RightUpperArm], LowerArmPattern);
+			boneList[HumanBodyBones.RightHand] = FindBone(HumanBodyBones.RightHand, boneList[HumanBodyBones.RightLowerArm], HandPattern);
 
 			//左足
-			m_boneList[HumanBodyBones.LeftUpperLeg] = FindBone(HumanBodyBones.LeftUpperLeg, m_boneList[HumanBodyBones.Hips], "upper|leg", LEFT);
-			m_boneList[HumanBodyBones.LeftLowerLeg] = FindBone(HumanBodyBones.LeftLowerLeg, m_boneList[HumanBodyBones.LeftUpperLeg], "lower|knee");
-			m_boneList[HumanBodyBones.LeftFoot] = FindBone(HumanBodyBones.LeftFoot, m_boneList[HumanBodyBones.LeftLowerLeg], "foot|ankle");
-			m_boneList[HumanBodyBones.LeftToes] = FindBone(HumanBodyBones.LeftToes, m_boneList[HumanBodyBones.LeftFoot], "toe");
+			boneList[HumanBodyBones.LeftUpperLeg] = FindBone(HumanBodyBones.LeftUpperLeg, boneList[HumanBodyBones.Hips], UpperLegPattern, Side.Left);
+			boneList[HumanBodyBones.LeftLowerLeg] = FindBone(HumanBodyBones.LeftLowerLeg, boneList[HumanBodyBones.LeftUpperLeg], LowerLegPattern);
+			boneList[HumanBodyBones.LeftFoot] = FindBone(HumanBodyBones.LeftFoot, boneList[HumanBodyBones.LeftLowerLeg], FootPattern);
+			boneList[HumanBodyBones.LeftToes] = FindBone(HumanBodyBones.LeftToes, boneList[HumanBodyBones.LeftFoot], ToesPattern);
 
 			//右足
-			m_boneList[HumanBodyBones.RightUpperLeg] = FindBone(HumanBodyBones.RightUpperLeg, m_boneList[HumanBodyBones.Hips], "upper|leg", RIGHT);
-			m_boneList[HumanBodyBones.RightLowerLeg] = FindBone(HumanBodyBones.RightLowerLeg, m_boneList[HumanBodyBones.RightUpperLeg], "lower|knee");
-			m_boneList[HumanBodyBones.RightFoot] = FindBone(HumanBodyBones.RightFoot, m_boneList[HumanBodyBones.RightLowerLeg], "foot|ankle");
-			m_boneList[HumanBodyBones.RightToes] = FindBone(HumanBodyBones.RightToes, m_boneList[HumanBodyBones.RightFoot], "toe");
+			boneList[HumanBodyBones.RightUpperLeg] = FindBone(HumanBodyBones.RightUpperLeg, boneList[HumanBodyBones.Hips], UpperLegPattern, Side.Right);
+			boneList[HumanBodyBones.RightLowerLeg] = FindBone(HumanBodyBones.RightLowerLeg, boneList[HumanBodyBones.RightUpperLeg], LowerLegPattern);
+			boneList[HumanBodyBones.RightFoot] = FindBone(HumanBodyBones.RightFoot, boneList[HumanBodyBones.RightLowerLeg], FootPattern);
+			boneList[HumanBodyBones.RightToes] = FindBone(HumanBodyBones.RightToes, boneList[HumanBodyBones.RightFoot], ToesPattern);
 
-			if (m_boneList[HumanBodyBones.Spine] == null ||
-				m_boneList[HumanBodyBones.Chest] == null ||
-				m_boneList[HumanBodyBones.LeftShoulder] == null ||
-				m_boneList[HumanBodyBones.RightShoulder] == null ||
-				m_boneList[HumanBodyBones.LeftUpperLeg] == null ||
-				m_boneList[HumanBodyBones.RightUpperLeg] == null)
-				m_dressBoneWarn = true && !m_isHair;
+			if (boneList[HumanBodyBones.Spine] == null ||
+				boneList[HumanBodyBones.Chest] == null ||
+				boneList[HumanBodyBones.LeftShoulder] == null ||
+				boneList[HumanBodyBones.RightShoulder] == null ||
+				boneList[HumanBodyBones.LeftUpperLeg] == null ||
+				boneList[HumanBodyBones.RightUpperLeg] == null)
+				dressBoneWarn = true && !isHair;
 
 			SetDefaultQuaternion();
 		}
 
 		void SetDefaultQuaternion()
 		{
-			m_armRotate = Vector3.zero;
-			m_hipsPos = Vector3.zero;
-			m_legRotate = Vector3.zero;
-			m_armScale = Vector3.one;
-			m_hipScale = Vector3.one;
-			m_legScale = Vector3.one;
-			m_SpineRotate = 0;
+			armRotateZ.Value = 0;
+			armRotateY.Value = 0;
+			hipsPosY.Value = 0;
+			hipsPosZ.Value = 0;
+			legRotateZ.Value = 0;
+			legRotate.Value = 0;
+			armScaleX.Value = 1;
+			armScaleY.Value = 1;
+			hipScaleX.Value = 1;
+			legScaleX.Value = 1;
+			legScaleY.Value = 1;
+			spineRotate.Value = 0;
 
 			if (GetTransform(HumanBodyBones.LeftUpperArm) != null)
-				m_defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
+				defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperArm) != null)
-				m_defaultRArmQuat = GetTransform(HumanBodyBones.RightUpperArm).rotation;
+				defaultRArmQuat = GetTransform(HumanBodyBones.RightUpperArm).rotation;
 
 			if (GetTransform(HumanBodyBones.Hips) != null)
-				m_defaultHipsPos = GetTransform(HumanBodyBones.Hips).position;
+				defaultHipsPos = GetTransform(HumanBodyBones.Hips).position;
 			if (GetTransform(HumanBodyBones.Spine) != null)
-				m_defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
+				defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
 
 			if (GetTransform(HumanBodyBones.LeftUpperLeg) != null)
-				m_defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
+				defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperLeg) != null)
-				m_defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
+				defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
 		}
 	}
 }
