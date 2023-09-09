@@ -1,17 +1,14 @@
 # Changelog
 
 ## [Unreleased]
-
 ### Added
-- Undo/Redoに対応 (#7)
+- Undo/Redoに対応 [`#7`](https://github.com/Sayamame-beans/KiseteNe-for-MA/pull/7)
   - KiseteNe for MAウィンドウ上の全操作/値と衣装側のTransform変化をUndo/Redoすることが出来ます
   - ウィンドウを閉じてからUndo/Redoを行うと、ウィンドウ上の操作/値は復元されず、衣装側のTransformのみ復元されます
   - 上記の理由から、ウィンドウを一度閉じてからUndo/Redoを行った場合は何も起こらないことがありますが、仕様です
-- Changelogを追加
-
+- Changelogを追加 [`#9`](https://github.com/Sayamame-beans/KiseteNe-for-MA/issues/9)
 
 ## [1.0.0] - 2023-08-31
-
 ### Added
 - VPMに対応
 - prefabでも(unpackせずとも)利用出来るように
