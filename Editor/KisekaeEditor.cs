@@ -297,16 +297,17 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
+    				var legScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);
 				if (left != null)
 				{
 					Undo.RecordObject(left, UndoGroupName);
-					left.localScale = new Vector3(legScaleX.Value, 1, legScaleX.Value);
+					left.localScale = legScale;
 				}
 
 				if (right != null)
 				{
 					Undo.RecordObject(right, UndoGroupName);
-					right.localScale = new Vector3(legScaleX.Value, 1, legScaleX.Value);
+					right.localScale = legScale;
 				}
 			}
 		}
