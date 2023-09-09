@@ -297,7 +297,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
-    				var legScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);
+				var legScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);
 				if (left != null)
 				{
 					Undo.RecordObject(left, UndoGroupName);
