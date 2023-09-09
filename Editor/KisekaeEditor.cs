@@ -203,7 +203,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					right.rotation = defaultRArmQuat;
 
 					right.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
-					right.Rotate(new Vector3(0, 1, 0), armRotateZ.Value * -1, Space.World);
+					right.Rotate(new Vector3(0, 1, 0), armRotateY.Value * -1, Space.World);
 				}
 			}
 
