@@ -11,6 +11,10 @@
 ### Changed
 - アクセス修飾子を修正 [`#8`](https://github.com/Sayamame-beans/KiseteNe-for-MA/issues/8)
 
+## [1.0.1] - 2023-08-31
+### Fixed
+- VPAI Packageの生成設定に誤りがあったため修正
+
 ## [1.0.0] - 2023-08-31
 ### Added
 - VPMに対応
