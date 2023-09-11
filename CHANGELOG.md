@@ -14,6 +14,7 @@
 ## [1.0.1] - 2023-08-31
 ### Fixed
 - VPAI Packageの生成設定に誤りがあったため修正
+- `vpmDependencies`のtypoを修正
 
 ## [1.0.0] - 2023-08-31
 ### Added
