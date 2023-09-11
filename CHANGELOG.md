@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.0] - 2023-09-11
 ### Added
 - Undo/Redoに対応 [`#7`](https://github.com/Sayamame-beans/KiseteNe-for-MA/pull/7)
   - KiseteNe for MAウィンドウ上の全操作/値と衣装側のTransform変化をUndo/Redoすることが出来ます
