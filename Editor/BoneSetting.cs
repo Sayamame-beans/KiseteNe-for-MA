@@ -10,11 +10,11 @@ using UnityEngine;
 
 namespace Sayabeans.KiseteNeForMA.Editor
 {
-	public partial class KisekaeEditor : EditorWindow
+	internal partial class KisekaeEditor : EditorWindow
 	{
 		///服のボーンを手動設定するためのUIを作る
 		///Humanoidではなくボーンの名前がイレギュラーな服用
-		void CreateBoneSettingsUI()
+		private void CreateBoneSettingsUI()
 		{
 			EditorGUILayout.HelpBox("この設定は調整がうまく動かないときに確認してください。\nすべて埋める必要はありません。該当するボーンが存在しない場合はnoneにしてください。", MessageType.Warning, true);
 

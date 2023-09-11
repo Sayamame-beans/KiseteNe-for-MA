@@ -8,6 +8,9 @@
   - 上記の理由から、ウィンドウを一度閉じてからUndo/Redoを行った場合は何も起こらないことがありますが、仕様です
 - Changelogを追加 [`#9`](https://github.com/Sayamame-beans/KiseteNe-for-MA/issues/9)
 
+### Changed
+- アクセス修飾子を修正 [`#8`](https://github.com/Sayamame-beans/KiseteNe-for-MA/issues/8)
+
 ## [1.0.0] - 2023-08-31
 ### Added
 - VPMに対応

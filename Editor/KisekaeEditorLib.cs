@@ -12,14 +12,14 @@ using UnityEngine;
 
 namespace Sayabeans.KiseteNeForMA.Editor
 {
-	public partial class KisekaeEditor : EditorWindow
+	internal partial class KisekaeEditor : EditorWindow
 	{
-		Transform GetTransform(HumanBodyBones bone)
+		private Transform GetTransform(HumanBodyBones bone)
 		{
 			return boneList[bone];
 		}
 
-		Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern)
+		private Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern)
 		{
 			if (boneList[bone] != null)
 				return boneList[bone];
@@ -34,7 +34,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			return null;
 		}
 
-		Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern, Side side)
+		private Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern, Side side)
 		{
 			if (boneList[bone] != null)
 				return boneList[bone];
@@ -72,14 +72,14 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			return null;
 		}
 
-		enum Side
+		private enum Side
 		{
 			Right,
 			Left,
 		}
 
 		[Serializable]
-		class HumanBodyBonesToDictionaryMapping
+		private class HumanBodyBonesToDictionaryMapping
 		{
 			[SerializeField] private Transform[] backedArray = new Transform[(int)HumanBodyBones.LastBone];
 
@@ -95,7 +95,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		/// <summary>
 		/// We have to delay CollapseUndoOperations for RecordObject of Transform
 		/// </summary>
-		struct LazyCollapseUndoOperations
+		private struct LazyCollapseUndoOperations
 		{
 			[SerializeField] private int collapseGroupId;
 
@@ -112,7 +112,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		}
 
 		[Serializable]
-		struct FloatUndoState
+		private struct FloatUndoState
 		{
 			public float Value
 			{

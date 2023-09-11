@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Sayabeans.KiseteNeForMA.Editor
 {
-	public partial class KisekaeEditor : EditorWindow
+	internal partial class KisekaeEditor : EditorWindow
 	{
 		[SerializeField] private GameObject dress;
 
@@ -49,14 +49,14 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		[SerializeField] private Quaternion defaultLLegQuat;
 		[SerializeField] private Quaternion defaultRLegQuat;
 
-		public void OnEnable()
+		private void OnEnable()
 		{
 			// Only add callback once.
 			Undo.undoRedoPerformed -= Repaint;
 			Undo.undoRedoPerformed += Repaint;
 		}
 
-		public void OnDisable()
+		private void OnDisable()
 		{
 			Undo.undoRedoPerformed -= Repaint;
 		}
@@ -64,12 +64,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		private const string UndoGroupName = "KiseteNe for MA";
 
 		[MenuItem("Tools/KiseteNe for MA")]
-		public static void ShowWindow()
+		private static void ShowWindow()
 		{
 			EditorWindow.GetWindow(typeof(KisekaeEditor), false, "KiseteNe for MA");
 		}
 
-		void OnGUI()
+		private void OnGUI()
 		{
 			Undo.RecordObject(this, UndoGroupName);
 			GUILayout.Label("MA向け衣装調整支援ツール「キセテネ for MA」", EditorStyles.boldLabel);
@@ -128,7 +128,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			collapse.CollapseIfRequested();
 		}
 
-		void CreateFUllBodyUI(ref LazyCollapseUndoOperations collapse)
+		private void CreateFUllBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
@@ -173,7 +173,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
-		void CreateTopBodyUI(ref LazyCollapseUndoOperations collapse)
+		private void CreateTopBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
@@ -250,7 +250,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
-		void CreateBottomBodyUI(ref LazyCollapseUndoOperations collapse)
+		private void CreateBottomBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
@@ -312,7 +312,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
-		void CreateHeadUI(ref LazyCollapseUndoOperations collapse)
+		private void CreateHeadUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
@@ -358,7 +358,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		private static readonly Regex ToesPattern = new Regex("toe", RegexOptions.IgnoreCase);
 
 		//セットされたものからボーン構造を作る
-		void UpdateBoneList()
+		private void UpdateBoneList()
 		{
 			boneList.Clear();
 
@@ -444,7 +444,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			SetDefaultQuaternion();
 		}
 
-		void SetDefaultQuaternion()
+		private void SetDefaultQuaternion()
 		{
 			armRotateZ.Value = 0;
 			armRotateY.Value = 0;
