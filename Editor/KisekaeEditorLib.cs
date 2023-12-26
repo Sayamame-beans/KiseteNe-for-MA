@@ -68,8 +68,6 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				default:
 					throw new ArgumentOutOfRangeException(nameof(side), side, null);
 			}
-
-			return null;
 		}
 
 		private enum Side
