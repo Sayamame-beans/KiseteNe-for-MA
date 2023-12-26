@@ -221,31 +221,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (left != null) {
 					Undo.RecordObject(left, UndoGroupName);
-					if (Mathf.Abs(left.forward.y) > Mathf.Abs(left.forward.z)) {
-						left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
-					} else {
-						//軸が違うのでxyを入れ替える
-						if (left.forward.z > 0) {
-							left.localScale = new Vector3(armScaleY.Value, armScaleX.Value, armScaleX.Value);
-						} else {
-							left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
-						}
-					}
+					left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null) {
 					Undo.RecordObject(right, UndoGroupName);
-					if (Mathf.Abs(right.forward.y) > Mathf.Abs(right.forward.z)) {
-						right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
-					} else {
-						//軸が違うのでxyを入れ替える
-						if (right.forward.z > 0) {
-							right.localScale = new Vector3(armScaleY.Value, armScaleX.Value, armScaleX.Value);
-						} else {
-							right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
-						}
-					}
+					right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 				}
 			}
 		}
