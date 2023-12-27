@@ -112,7 +112,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				switch (selectedTabNumber) {
 					case 0:
 						GUILayout.Label("全体の調整です", EditorStyles.miniLabel);
-						CreateFUllBodyUI(ref collapse);
+						CreateFullBodyUI(ref collapse);
 						break;
 					case 1:
 						GUILayout.Label("腕周りの調整です", EditorStyles.miniLabel);
@@ -128,7 +128,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			collapse.CollapseIfRequested();
 		}
 
-		private void CreateFUllBodyUI(ref LazyCollapseUndoOperations collapse)
+		private void CreateFullBodyUI(ref LazyCollapseUndoOperations collapse)
 		{
 			EditorGUI.BeginChangeCheck();
 
