@@ -6,6 +6,7 @@ https://opensource.org/licenses/mit-license.php
 */
 
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -38,7 +39,6 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		[SerializeField] private FloatUndoState legRotateY;
 		[SerializeField] private FloatUndoState legScaleX;
 		[SerializeField] private FloatUndoState legScaleY;
-
 		[SerializeField] private FloatUndoState spineRotate;
 
 		//初期値保持
@@ -125,6 +125,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 			}
 
+			GUILayout.Space(20);
+			CreateFileUI(ref collapse);
+
 			collapse.CollapseIfRequested();
 		}
 
@@ -192,7 +195,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					left.rotation = defaultLArmQuat;
 
-					left.Rotate(new Vector3(0, 0, 1), armRotateZ.Value*-1, Space.World);
+					left.Rotate(new Vector3(0, 0, 1), armRotateZ.Value * -1, Space.World);
 					left.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
 				}
 
@@ -323,6 +326,25 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 		}
 
+		private void CreateFileUI(ref LazyCollapseUndoOperations collapse)
+		{
+			GUILayout.Label("ファイル保存/読み込み");
+			if (GUILayout.Button("ファイルに調整値を保存する"))
+			{
+				SaveToJson();
+			}
+
+			if (GUILayout.Button("ファイルから調整値を(現在の状態として)読み込む"))
+			{
+				LoadFromJson(ref collapse);
+			}
+
+			if (GUILayout.Button("ファイルから調整値を読み込み、新たに適用する"))
+			{
+				ApplyFromJson(ref collapse);
+			}
+		}
+
 		private static readonly Regex ArmatureRegexPattern = new Regex("armature|root|skelton", RegexOptions.IgnoreCase);
 		private static readonly Regex HipsPattern = new Regex("hip", RegexOptions.IgnoreCase);
 		private static readonly Regex NeckPattern = new Regex("neck", RegexOptions.IgnoreCase);
@@ -434,8 +456,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			hipsPosZ.Value = 0;
 			legRotateZ.Value = 0;
 			legRotateY.Value = 0;
-			armScaleX.Value = 1;
 			armScaleY.Value = 1;
+			armScaleX.Value = 1;
 			hipScaleX.Value = 1;
 			legScaleX.Value = 1;
 			legScaleY.Value = 1;
@@ -455,6 +477,201 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperLeg) != null)
 				defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
+		}
+
+		private void SaveToJson()
+		{
+			string filePath = EditorUtility.SaveFilePanel("[KiseteNe for MA] 調整値を保存", "Assets/", "edits.json", "json");
+			if (filePath == "")
+				return;
+
+			var data = new SaveableData();
+			data.armRotateZ = armRotateZ.Value;
+			data.armRotateY = armRotateY.Value;
+			data.armScaleY = armScaleY.Value;
+			data.armScaleX = armScaleX.Value;
+			data.hipsPosY = hipsPosY.Value;
+			data.hipsPosZ = hipsPosZ.Value;
+			data.hipScaleX = hipScaleX.Value;
+			data.legRotateZ = legRotateZ.Value;
+			data.legRotateY = legRotateY.Value;
+			data.legScaleX = legScaleX.Value;
+			data.legScaleY = legScaleY.Value;
+			data.spineRotate = spineRotate.Value;
+
+			try
+			{
+				using (StreamWriter sw = new StreamWriter(filePath))
+				{
+					sw.Write(JsonUtility.ToJson(data));
+				}
+			}
+			catch (Exception)
+            {
+				EditorUtility.DisplayDialog("[KiseteNe for MA] 調整値を保存", "ファイル書き込み時にエラーが発生しました。\n詳細はConsoleを確認してください。", "OK");
+				throw;
+			}
+		}
+
+		private void LoadFromJson(ref LazyCollapseUndoOperations collapse)
+		{
+			var filePath = EditorUtility.OpenFilePanel("[KiseteNe for MA] 調整値を読み込む", "Assets/", "json");
+			if (filePath == "")
+				return;
+
+			var collapseGroupId = Undo.GetCurrentGroup();
+			SaveableData data;
+
+			try
+			{
+				using (StreamReader sr = new StreamReader(filePath))
+				{
+					data = JsonUtility.FromJson<SaveableData>(sr.ReadToEnd());
+				}
+			}
+			catch (Exception)
+			{
+				EditorUtility.DisplayDialog("[KiseteNe for MA] 調整値を読み込む", "ファイル読み込み時にエラーが発生しました。\n詳細はConsoleを確認してください。", "OK");
+				throw;
+			}
+
+			armRotateZ.Value = data.armRotateZ;
+			armRotateY.Value = data.armRotateY;
+			armScaleY.Value = data.armScaleY;
+			armScaleX.Value = data.armScaleX;
+			hipsPosY.Value = data.hipsPosY;
+			hipsPosZ.Value = data.hipsPosZ;
+			hipScaleX.Value = data.hipScaleX;
+			legRotateZ.Value = data.legRotateZ;
+			legRotateY.Value = data.legRotateY;
+			legScaleX.Value = data.legScaleX;
+			legScaleY.Value = data.legScaleY;
+			spineRotate.Value = data.spineRotate;
+
+			if (isHair) {
+				//nothing to do here for now
+			} else {
+				var leftUpperArm = GetTransform(HumanBodyBones.LeftUpperArm);
+				if (leftUpperArm != null)
+					defaultLArmQuat = leftUpperArm.rotation * Quaternion.AngleAxis(armRotateY.Value * -1, leftUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(armRotateZ.Value, leftUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
+
+				var rightUpperArm = GetTransform(HumanBodyBones.RightUpperArm);
+				if (rightUpperArm != null)
+					defaultRArmQuat = rightUpperArm.rotation * Quaternion.AngleAxis(armRotateY.Value, rightUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(armRotateZ.Value * -1, rightUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
+
+				if (GetTransform(HumanBodyBones.Hips) != null)
+					defaultHipsPos = GetTransform(HumanBodyBones.Hips).position - new Vector3(0, hipsPosY.Value, hipsPosZ.Value);;
+
+				var spine = GetTransform(HumanBodyBones.Spine);
+				if (spine != null)
+					defaultSpineQuat = spine.rotation * Quaternion.AngleAxis(spineRotate.Value * -1, spine.right);
+
+				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
+				if (leftUpperLeg != null)
+					defaultLLegQuat = leftUpperLeg.rotation * Quaternion.AngleAxis(legRotateY.Value, leftUpperLeg.right) * Quaternion.AngleAxis(legRotateZ.Value, leftUpperLeg.forward);
+
+				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
+				if (rightUpperLeg != null)
+					defaultRLegQuat = rightUpperLeg.rotation * Quaternion.AngleAxis(legRotateY.Value, rightUpperLeg.right) * Quaternion.AngleAxis(legRotateZ.Value * -1, rightUpperLeg.forward);
+			}
+
+			collapse.RequestCollapse(collapseGroupId);
+		}
+
+		private void ApplyFromJson(ref LazyCollapseUndoOperations collapse)
+		{
+			var filePath = EditorUtility.OpenFilePanel("[KiseteNe for MA] 調整値を読み込んで適用", "Assets/", "json");
+			if (filePath == "")
+				return;
+
+			var collapseGroupId = Undo.GetCurrentGroup();
+			SaveableData data;
+
+			try
+			{
+				using (StreamReader sr = new StreamReader(filePath))
+				{
+					data = JsonUtility.FromJson<SaveableData>(sr.ReadToEnd());
+				}
+			}
+			catch (Exception)
+			{
+				EditorUtility.DisplayDialog("[KiseteNe for MA] 調整値を読み込む", "ファイル読み込み時にエラーが発生しました。\n詳細はConsoleを確認してください。", "OK");
+				throw;
+			}
+
+			armRotateZ.Value = data.armRotateZ;
+			armRotateY.Value = data.armRotateY;
+			armScaleY.Value = data.armScaleY;
+			armScaleX.Value = data.armScaleX;
+			hipsPosY.Value = data.hipsPosY;
+			hipsPosZ.Value = data.hipsPosZ;
+			hipScaleX.Value = data.hipScaleX;
+			legRotateZ.Value = data.legRotateZ;
+			legRotateY.Value = data.legRotateY;
+			legScaleX.Value = data.legScaleX;
+			legScaleY.Value = data.legScaleY;
+			spineRotate.Value = data.spineRotate;
+
+			if (isHair) {
+				Undo.RecordObject(armature, UndoGroupName);
+				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
+				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+			} else {
+				var hips = GetTransform(HumanBodyBones.Hips);
+				Undo.RecordObject(hips, UndoGroupName);
+				hips.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
+				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+
+				var spine = GetTransform(HumanBodyBones.Spine);
+				if (spine != null) {
+					Undo.RecordObject(spine, UndoGroupName);
+					spine.rotation = defaultSpineQuat;
+					spine.Rotate(spine.right, spineRotate.Value);
+				}
+
+				var leftUpperArm = GetTransform(HumanBodyBones.LeftUpperArm);
+				if (leftUpperArm != null) {
+					Undo.RecordObject(leftUpperArm, UndoGroupName);
+					//0で0に戻りたいので、回す前にいったん初期値を入れる
+					leftUpperArm.rotation = defaultLArmQuat;
+					leftUpperArm.Rotate(new Vector3(0, 0, 1), armRotateZ.Value * -1, Space.World);
+					leftUpperArm.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
+					leftUpperArm.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
+				}
+
+				var rightUpperArm = GetTransform(HumanBodyBones.RightUpperArm);
+				if (rightUpperArm != null) {
+					Undo.RecordObject(rightUpperArm, UndoGroupName);
+					//0で0に戻りたいので、回す前にいったん初期値を入れる
+					rightUpperArm.rotation = defaultRArmQuat;
+					rightUpperArm.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
+					rightUpperArm.Rotate(new Vector3(0, 1, 0), armRotateY.Value * -1, Space.World);
+					rightUpperArm.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
+				}
+
+				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
+				if (leftUpperLeg != null) {
+					Undo.RecordObject(leftUpperLeg, UndoGroupName);
+					//0で0に戻りたいので、回す前にいったん初期値を入れる
+					leftUpperLeg.rotation = defaultLLegQuat;
+					leftUpperLeg.Rotate(leftUpperLeg.forward, legRotateZ.Value * -1);
+					leftUpperLeg.Rotate(leftUpperLeg.right, legRotateY.Value * -1);
+					leftUpperLeg.localScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);;
+				}
+
+				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
+				if (rightUpperLeg != null) {
+					Undo.RecordObject(rightUpperLeg, UndoGroupName);
+					//0で0に戻りたいので、回す前にいったん初期値を入れる
+					rightUpperLeg.rotation = defaultRLegQuat;
+					rightUpperLeg.Rotate(rightUpperLeg.forward, legRotateZ.Value);
+					rightUpperLeg.Rotate(rightUpperLeg.right, legRotateY.Value * -1);
+					rightUpperLeg.localScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);;
+				}
+			}
+
+			collapse.RequestCollapse(collapseGroupId);
 		}
 	}
 }

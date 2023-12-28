@@ -157,5 +157,22 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				prevGroupId = currentId;
 			}
 		}
+
+		[Serializable]
+		private struct SaveableData
+		{
+			public float armRotateZ;
+			public float armRotateY;
+			public float armScaleY;
+			public float armScaleX;
+			public float hipsPosY;
+			public float hipsPosZ;
+			public float hipScaleX;
+			public float legRotateZ;
+			public float legRotateY;
+			public float legScaleX;
+			public float legScaleY;
+			public float spineRotate;
+		}
 	}
 }
