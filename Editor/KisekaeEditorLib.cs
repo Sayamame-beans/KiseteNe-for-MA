@@ -27,7 +27,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (parent == null)
 				return null;
 
-			foreach (Transform child in parent) {
+			foreach (Transform child in parent)
+			{
 				if (matchPattern.IsMatch(child.name))
 					return child;
 			}

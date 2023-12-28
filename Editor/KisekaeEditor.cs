@@ -78,7 +78,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			EditorGUI.BeginChangeCheck();
 			dress = EditorGUILayout.ObjectField("服", dress, typeof(GameObject), true) as GameObject;
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				dressBoneError = false;
 				dressBoneWarn = false;
 				isHair = false;
@@ -88,7 +89,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (dress == null)
 				return;
 
-			if (dressBoneError) {
+			if (dressBoneError)
+			{
 				EditorGUILayout.HelpBox("服のボーンを取得することができませんでした\n上の欄にArmatureやメッシュを設定している場合は、服のルートオブジェクトを設定してください", MessageType.Error, true);
 				return;
 			}
@@ -97,19 +99,24 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				EditorGUILayout.HelpBox("服のボーンを一部取得することができませんでした。\n調整時にうまく動かない場合、ボーン詳細設定を確認してください", MessageType.Warning, true);
 
 			boneDetail = GUILayout.Toggle(boneDetail, "ボーン詳細設定");
-			if (boneDetail) {
+			if (boneDetail)
+			{
 				CreateBoneSettingsUI();
 			}
 
 			GUILayout.Space(20);
 			LazyCollapseUndoOperations collapse = default;
 
-			if (isHair) {
+			if (isHair)
+			{
 				GUILayout.Label("髪の調整です", EditorStyles.miniLabel);
 				CreateHeadUI(ref collapse);
-			} else {
+			}
+			else
+			{
 				selectedTabNumber = GUILayout.Toolbar(selectedTabNumber, new string[] { "全体", "上半身", "下半身" }, EditorStyles.toolbarButton);
-				switch (selectedTabNumber) {
+				switch (selectedTabNumber)
+				{
 					case 0:
 						GUILayout.Label("全体の調整です", EditorStyles.miniLabel);
 						CreateFullBodyUI(ref collapse);
@@ -143,7 +150,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("前後");
 			hipsPosZ.ButtonAndSliderGui(ref collapse, 0.0f, -1, 1);
 
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				var hips = GetTransform(HumanBodyBones.Hips);
 				Undo.RecordObject(hips, UndoGroupName);
 				hips.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
@@ -155,7 +163,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Label("拡大縮小");
 			hipScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				var hips = GetTransform(HumanBodyBones.Hips);
 				Undo.RecordObject(hips, UndoGroupName);
 				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
@@ -166,9 +175,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 			GUILayout.Label("お辞儀");
 			spineRotate.ButtonAndSliderGui(ref collapse, 0.0f, -20, 20, paramRatio: 10);
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				var spine = GetTransform(HumanBodyBones.Spine);
-				if (spine != null) {
+				if (spine != null)
+				{
 					Undo.RecordObject(spine, UndoGroupName);
 					spine.rotation = defaultSpineQuat;
 					spine.Rotate(spine.right, spineRotate.Value);
@@ -188,9 +199,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("腕を前に出す");
 			armRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -15, 15, paramRatio: 10);
 
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
-				if (left != null) {
+				if (left != null)
+				{
 					Undo.RecordObject(left, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					left.rotation = defaultLArmQuat;
@@ -200,7 +213,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
-				if (right != null) {
+				if (right != null)
+				{
 					Undo.RecordObject(right, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					right.rotation = defaultRArmQuat;
@@ -220,15 +234,18 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("袖を太くする");
 			armScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
-				if (left != null) {
+				if (left != null)
+				{
 					Undo.RecordObject(left, UndoGroupName);
 					left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
-				if (right != null) {
+				if (right != null)
+				{
 					Undo.RecordObject(right, UndoGroupName);
 					right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
 				}
@@ -246,9 +263,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("足を前に出す");
 			legRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
 
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
-				if (left != null) {
+				if (left != null)
+				{
 					Undo.RecordObject(left, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					left.rotation = defaultLLegQuat;
@@ -258,7 +277,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
-				if (right != null) {
+				if (right != null)
+				{
 					Undo.RecordObject(right, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					right.rotation = defaultRLegQuat;
@@ -309,7 +329,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			GUILayout.Label("前後");
 			hipsPosZ.ButtonAndSliderGui(ref collapse, 0.0f, -1, 1);
 
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				Undo.RecordObject(armature, UndoGroupName);
 				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
@@ -320,7 +341,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Label("拡大縮小");
 			hipScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 2.0f);
-			if (EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck())
+			{
 				Undo.RecordObject(armature, UndoGroupName);
 				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 			}
@@ -370,14 +392,16 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				return;
 
 			armature = FindBone(HumanBodyBones.Hips, dress.transform, ArmatureRegexPattern);
-			if (armature == null) {
+			if (armature == null)
+			{
 				dressBoneError = true;
 				return;
 			}
 
 			//Humanoidなら取れる限りとってみる
 			var dressAnim = dress.GetComponent<Animator>();
-			if (dressAnim != null && dressAnim.isHuman) {
+			if (dressAnim != null && dressAnim.isHuman)
+			{
 				for (int i = (int)HumanBodyBones.Hips; i <= (int)HumanBodyBones.RightToes; i++)
 					boneList[(HumanBodyBones)i] = dressAnim.GetBoneTransform((HumanBodyBones)i);
 			}
@@ -385,16 +409,22 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if(boneList[HumanBodyBones.Hips] == null)
 				boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,armature, HipsPattern);
 
-			if (boneList[HumanBodyBones.Hips] == null) {
+			if (boneList[HumanBodyBones.Hips] == null)
+			{
 				//頭すげ替えか髪の毛用
-				if (FindBone(HumanBodyBones.Neck, armature, NeckPattern)) {
+				if (FindBone(HumanBodyBones.Neck, armature, NeckPattern))
+				{
 					boneList[HumanBodyBones.Neck] = FindBone(HumanBodyBones.Neck, armature, NeckPattern);
 					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, boneList[HumanBodyBones.Neck], HeadPattern);
 					isHair = true;
-				} else if (FindBone(HumanBodyBones.Head, armature, HeadPattern)) {
+				}
+				else if (FindBone(HumanBodyBones.Head, armature, HeadPattern))
+				{
 					boneList[HumanBodyBones.Head] = FindBone(HumanBodyBones.Head, armature, HeadPattern);
 					isHair = true;
-				} else {
+				}
+				else
+				{
 					dressBoneError = true;
 					return;
 				}
@@ -507,7 +537,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 			}
 			catch (Exception)
-            {
+			{
 				EditorUtility.DisplayDialog("[KiseteNe for MA] 調整値を保存", "ファイル書き込み時にエラーが発生しました。\n詳細はConsoleを確認してください。", "OK");
 				throw;
 			}
@@ -560,9 +590,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (!float.IsNaN(data.legScaleY))
 				legScaleY.Value = data.legScaleY;
 
-			if (isHair) {
+			if (isHair)
+			{
 				//nothing to do here for now
-			} else {
+			}
+			else
+			{
 				var leftUpperArm = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (leftUpperArm != null)
 					defaultLArmQuat = leftUpperArm.rotation * Quaternion.AngleAxis(armRotateY.Value * -1, leftUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(armRotateZ.Value, leftUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
@@ -637,25 +670,30 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (!float.IsNaN(data.legScaleY))
 				legScaleY.Value = data.legScaleY;
 
-			if (isHair) {
+			if (isHair)
+			{
 				Undo.RecordObject(armature, UndoGroupName);
 				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
-			} else {
+			}
+			else
+			{
 				var hips = GetTransform(HumanBodyBones.Hips);
 				Undo.RecordObject(hips, UndoGroupName);
 				hips.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
 
 				var spine = GetTransform(HumanBodyBones.Spine);
-				if (spine != null) {
+				if (spine != null)
+				{
 					Undo.RecordObject(spine, UndoGroupName);
 					spine.rotation = defaultSpineQuat;
 					spine.Rotate(spine.right, spineRotate.Value);
 				}
 
 				var leftUpperArm = GetTransform(HumanBodyBones.LeftUpperArm);
-				if (leftUpperArm != null) {
+				if (leftUpperArm != null)
+				{
 					Undo.RecordObject(leftUpperArm, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					leftUpperArm.rotation = defaultLArmQuat;
@@ -665,7 +703,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 
 				var rightUpperArm = GetTransform(HumanBodyBones.RightUpperArm);
-				if (rightUpperArm != null) {
+				if (rightUpperArm != null)
+				{
 					Undo.RecordObject(rightUpperArm, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					rightUpperArm.rotation = defaultRArmQuat;
@@ -675,7 +714,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 
 				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
-				if (leftUpperLeg != null) {
+				if (leftUpperLeg != null)
+				{
 					Undo.RecordObject(leftUpperLeg, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					leftUpperLeg.rotation = defaultLLegQuat;
@@ -685,7 +725,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 
 				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
-				if (rightUpperLeg != null) {
+				if (rightUpperLeg != null)
+				{
 					Undo.RecordObject(rightUpperLeg, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
 					rightUpperLeg.rotation = defaultRLegQuat;
