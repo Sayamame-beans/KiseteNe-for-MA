@@ -30,16 +30,16 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		//各所調整用
 		[SerializeField] private FloatUndoState armRotateZ;
 		[SerializeField] private FloatUndoState armRotateY;
-		[SerializeField] private FloatUndoState armScaleY;
-		[SerializeField] private FloatUndoState armScaleX;
 		[SerializeField] private FloatUndoState hipsPosY;
 		[SerializeField] private FloatUndoState hipsPosZ;
-		[SerializeField] private FloatUndoState hipScaleX;
 		[SerializeField] private FloatUndoState legRotateZ;
 		[SerializeField] private FloatUndoState legRotateY;
+		[SerializeField] private FloatUndoState spineRotate;
+		[SerializeField] private FloatUndoState armScaleY;
+		[SerializeField] private FloatUndoState armScaleX;
+		[SerializeField] private FloatUndoState hipScaleX;
 		[SerializeField] private FloatUndoState legScaleX;
 		[SerializeField] private FloatUndoState legScaleY;
-		[SerializeField] private FloatUndoState spineRotate;
 
 		//初期値保持
 		[SerializeField] private Vector3 defaultHipsPos;
@@ -456,12 +456,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			hipsPosZ.Value = 0;
 			legRotateZ.Value = 0;
 			legRotateY.Value = 0;
+			spineRotate.Value = 0;
 			armScaleY.Value = 1;
 			armScaleX.Value = 1;
 			hipScaleX.Value = 1;
 			legScaleX.Value = 1;
 			legScaleY.Value = 1;
-			spineRotate.Value = 0;
 
 			if (GetTransform(HumanBodyBones.LeftUpperArm) != null)
 				defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
@@ -488,16 +488,16 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			var data = new SaveableData();
 			data.armRotateZ = armRotateZ.Value;
 			data.armRotateY = armRotateY.Value;
-			data.armScaleY = armScaleY.Value;
-			data.armScaleX = armScaleX.Value;
 			data.hipsPosY = hipsPosY.Value;
 			data.hipsPosZ = hipsPosZ.Value;
-			data.hipScaleX = hipScaleX.Value;
 			data.legRotateZ = legRotateZ.Value;
 			data.legRotateY = legRotateY.Value;
+			data.spineRotate = spineRotate.Value;
+			data.armScaleY = armScaleY.Value;
+			data.armScaleX = armScaleX.Value;
+			data.hipScaleX = hipScaleX.Value;
 			data.legScaleX = legScaleX.Value;
 			data.legScaleY = legScaleY.Value;
-			data.spineRotate = spineRotate.Value;
 
 			try
 			{
@@ -520,13 +520,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				return;
 
 			var collapseGroupId = Undo.GetCurrentGroup();
-			SaveableData data;
+			SaveableData data = new SaveableData();
 
 			try
 			{
 				using (StreamReader sr = new StreamReader(filePath))
 				{
-					data = JsonUtility.FromJson<SaveableData>(sr.ReadToEnd());
+					JsonUtility.FromJsonOverwrite(sr.ReadToEnd(), data);
 				}
 			}
 			catch (Exception)
@@ -535,18 +535,30 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				throw;
 			}
 
-			armRotateZ.Value = data.armRotateZ;
-			armRotateY.Value = data.armRotateY;
-			armScaleY.Value = data.armScaleY;
-			armScaleX.Value = data.armScaleX;
-			hipsPosY.Value = data.hipsPosY;
-			hipsPosZ.Value = data.hipsPosZ;
-			hipScaleX.Value = data.hipScaleX;
-			legRotateZ.Value = data.legRotateZ;
-			legRotateY.Value = data.legRotateY;
-			legScaleX.Value = data.legScaleX;
-			legScaleY.Value = data.legScaleY;
-			spineRotate.Value = data.spineRotate;
+			if (!float.IsNaN(data.armRotateZ))
+				armRotateZ.Value = data.armRotateZ;
+			if (!float.IsNaN(data.armRotateY))
+				armRotateY.Value = data.armRotateY;
+			if (!float.IsNaN(data.hipsPosY))
+				hipsPosY.Value = data.hipsPosY;
+			if (!float.IsNaN(data.hipsPosZ))
+				hipsPosZ.Value = data.hipsPosZ;
+			if (!float.IsNaN(data.legRotateZ))
+				legRotateZ.Value = data.legRotateZ;
+			if (!float.IsNaN(data.legRotateY))
+				legRotateY.Value = data.legRotateY;
+			if (!float.IsNaN(data.spineRotate))
+				spineRotate.Value = data.spineRotate;
+			if (!float.IsNaN(data.armScaleY))
+				armScaleY.Value = data.armScaleY;
+			if (!float.IsNaN(data.armScaleX))
+				armScaleX.Value = data.armScaleX;
+			if (!float.IsNaN(data.hipScaleX))
+				hipScaleX.Value = data.hipScaleX;
+			if (!float.IsNaN(data.legScaleX))
+				legScaleX.Value = data.legScaleX;
+			if (!float.IsNaN(data.legScaleY))
+				legScaleY.Value = data.legScaleY;
 
 			if (isHair) {
 				//nothing to do here for now
@@ -585,13 +597,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				return;
 
 			var collapseGroupId = Undo.GetCurrentGroup();
-			SaveableData data;
+			SaveableData data = new SaveableData();
 
 			try
 			{
 				using (StreamReader sr = new StreamReader(filePath))
 				{
-					data = JsonUtility.FromJson<SaveableData>(sr.ReadToEnd());
+					JsonUtility.FromJsonOverwrite(sr.ReadToEnd(), data);
 				}
 			}
 			catch (Exception)
@@ -600,18 +612,30 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				throw;
 			}
 
-			armRotateZ.Value = data.armRotateZ;
-			armRotateY.Value = data.armRotateY;
-			armScaleY.Value = data.armScaleY;
-			armScaleX.Value = data.armScaleX;
-			hipsPosY.Value = data.hipsPosY;
-			hipsPosZ.Value = data.hipsPosZ;
-			hipScaleX.Value = data.hipScaleX;
-			legRotateZ.Value = data.legRotateZ;
-			legRotateY.Value = data.legRotateY;
-			legScaleX.Value = data.legScaleX;
-			legScaleY.Value = data.legScaleY;
-			spineRotate.Value = data.spineRotate;
+			if (!float.IsNaN(data.armRotateZ))
+				armRotateZ.Value = data.armRotateZ;
+			if (!float.IsNaN(data.armRotateY))
+				armRotateY.Value = data.armRotateY;
+			if (!float.IsNaN(data.hipsPosY))
+				hipsPosY.Value = data.hipsPosY;
+			if (!float.IsNaN(data.hipsPosZ))
+				hipsPosZ.Value = data.hipsPosZ;
+			if (!float.IsNaN(data.legRotateZ))
+				legRotateZ.Value = data.legRotateZ;
+			if (!float.IsNaN(data.legRotateY))
+				legRotateY.Value = data.legRotateY;
+			if (!float.IsNaN(data.spineRotate))
+				spineRotate.Value = data.spineRotate;
+			if (!float.IsNaN(data.armScaleY))
+				armScaleY.Value = data.armScaleY;
+			if (!float.IsNaN(data.armScaleX))
+				armScaleX.Value = data.armScaleX;
+			if (!float.IsNaN(data.hipScaleX))
+				hipScaleX.Value = data.hipScaleX;
+			if (!float.IsNaN(data.legScaleX))
+				legScaleX.Value = data.legScaleX;
+			if (!float.IsNaN(data.legScaleY))
+				legScaleY.Value = data.legScaleY;
 
 			if (isHair) {
 				Undo.RecordObject(armature, UndoGroupName);

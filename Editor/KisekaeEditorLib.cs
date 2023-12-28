@@ -159,20 +159,20 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		}
 
 		[Serializable]
-		private struct SaveableData
+		private class SaveableData
 		{
-			public float armRotateZ;
-			public float armRotateY;
-			public float armScaleY;
-			public float armScaleX;
-			public float hipsPosY;
-			public float hipsPosZ;
-			public float hipScaleX;
-			public float legRotateZ;
-			public float legRotateY;
-			public float legScaleX;
-			public float legScaleY;
-			public float spineRotate;
+			public float armRotateZ = float.NaN;
+			public float armRotateY = float.NaN;
+			public float hipsPosY = float.NaN;
+			public float hipsPosZ = float.NaN;
+			public float legRotateZ = float.NaN;
+			public float legRotateY = float.NaN;
+			public float spineRotate = float.NaN;
+			public float armScaleY = float.NaN;
+			public float armScaleX = float.NaN;
+			public float hipScaleX = float.NaN;
+			public float legScaleX = float.NaN;
+			public float legScaleY = float.NaN;
 		}
 	}
 }
