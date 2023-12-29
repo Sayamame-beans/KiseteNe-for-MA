@@ -162,18 +162,18 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		[Serializable]
 		private class SaveableData
 		{
-			public float armRotateZ = float.NaN;
-			public float armRotateY = float.NaN;
+			public float upperArmRotateZ = float.NaN;
+			public float upperArmRotateY = float.NaN;
 			public float hipsPosY = float.NaN;
 			public float hipsPosZ = float.NaN;
-			public float legRotateZ = float.NaN;
-			public float legRotateY = float.NaN;
+			public float upperLegRotateZ = float.NaN;
+			public float upperLegRotateY = float.NaN;
 			public float spineRotate = float.NaN;
-			public float armScaleY = float.NaN;
-			public float armScaleX = float.NaN;
+			public float upperArmScaleY = float.NaN;
+			public float upperArmScaleX = float.NaN;
 			public float hipScaleX = float.NaN;
-			public float legScaleX = float.NaN;
-			public float legScaleY = float.NaN;
+			public float upperLegScaleX = float.NaN;
+			public float upperLegScaleY = float.NaN;
 		}
 	}
 }

@@ -28,26 +28,26 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		[SerializeField] private bool dressBoneWarn = false;
 
 		//各所調整用
-		[SerializeField] private FloatUndoState armRotateZ;
-		[SerializeField] private FloatUndoState armRotateY;
+		[SerializeField] private FloatUndoState upperArmRotateZ;
+		[SerializeField] private FloatUndoState upperArmRotateY;
 		[SerializeField] private FloatUndoState hipsPosY;
 		[SerializeField] private FloatUndoState hipsPosZ;
-		[SerializeField] private FloatUndoState legRotateZ;
-		[SerializeField] private FloatUndoState legRotateY;
+		[SerializeField] private FloatUndoState upperLegRotateZ;
+		[SerializeField] private FloatUndoState upperLegRotateY;
 		[SerializeField] private FloatUndoState spineRotate;
-		[SerializeField] private FloatUndoState armScaleY;
-		[SerializeField] private FloatUndoState armScaleX;
+		[SerializeField] private FloatUndoState upperArmScaleY;
+		[SerializeField] private FloatUndoState upperArmScaleX;
 		[SerializeField] private FloatUndoState hipScaleX;
-		[SerializeField] private FloatUndoState legScaleX;
-		[SerializeField] private FloatUndoState legScaleY;
+		[SerializeField] private FloatUndoState upperLegScaleX;
+		[SerializeField] private FloatUndoState upperLegScaleY;
 
 		//初期値保持
 		[SerializeField] private Vector3 defaultHipsPos;
-		[SerializeField] private Quaternion defaultLArmQuat;
-		[SerializeField] private Quaternion defaultRArmQuat;
+		[SerializeField] private Quaternion defaultULArmQuat;
+		[SerializeField] private Quaternion defaultURArmQuat;
 		[SerializeField] private Quaternion defaultSpineQuat;
-		[SerializeField] private Quaternion defaultLLegQuat;
-		[SerializeField] private Quaternion defaultRLegQuat;
+		[SerializeField] private Quaternion defaultULLegQuat;
+		[SerializeField] private Quaternion defaultURLegQuat;
 
 		private void OnEnable()
 		{
@@ -192,12 +192,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("腕を上げる");
-			armRotateZ.ButtonAndSliderGui(ref collapse, 0.0f, -50, 50, paramRatio: 10);
+			upperArmRotateZ.ButtonAndSliderGui(ref collapse, 0.0f, -50, 50, paramRatio: 10);
 
 			GUILayout.Space(5);
 
 			GUILayout.Label("腕を前に出す");
-			armRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -15, 15, paramRatio: 10);
+			upperArmRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -15, 15, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck())
 			{
@@ -206,10 +206,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(left, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					left.rotation = defaultLArmQuat;
+					left.rotation = defaultULArmQuat;
 
-					left.Rotate(new Vector3(0, 0, 1), armRotateZ.Value * -1, Space.World);
-					left.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
+					left.Rotate(new Vector3(0, 0, 1), upperArmRotateZ.Value * -1, Space.World);
+					left.Rotate(new Vector3(0, 1, 0), upperArmRotateY.Value, Space.World);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
@@ -217,10 +217,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(right, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					right.rotation = defaultRArmQuat;
+					right.rotation = defaultURArmQuat;
 
-					right.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
-					right.Rotate(new Vector3(0, 1, 0), armRotateY.Value * -1, Space.World);
+					right.Rotate(new Vector3(0, 0, 1), upperArmRotateZ.Value, Space.World);
+					right.Rotate(new Vector3(0, 1, 0), upperArmRotateY.Value * -1, Space.World);
 				}
 			}
 
@@ -228,11 +228,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を伸ばす");
-			armScaleY.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
+			upperArmScaleY.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("袖を太くする");
-			armScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
+			upperArmScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			if (EditorGUI.EndChangeCheck())
 			{
@@ -240,14 +240,14 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				if (left != null)
 				{
 					Undo.RecordObject(left, UndoGroupName);
-					left.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
+					left.localScale = new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null)
 				{
 					Undo.RecordObject(right, UndoGroupName);
-					right.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
+					right.localScale = new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value);
 				}
 			}
 		}
@@ -257,11 +257,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("足を開く");
-			legRotateZ.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
+			upperLegRotateZ.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
 
 			GUILayout.Space(5);
 			GUILayout.Label("足を前に出す");
-			legRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
+			upperLegRotateY.ButtonAndSliderGui(ref collapse, 0.0f, -10, 10, paramRatio: 10);
 
 			if (EditorGUI.EndChangeCheck())
 			{
@@ -270,10 +270,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(left, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					left.rotation = defaultLLegQuat;
+					left.rotation = defaultULLegQuat;
 
-					left.Rotate(left.forward, legRotateZ.Value * -1);
-					left.Rotate(left.right, legRotateY.Value * -1);
+					left.Rotate(left.forward, upperLegRotateZ.Value * -1);
+					left.Rotate(left.right, upperLegRotateY.Value * -1);
 				}
 
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
@@ -281,10 +281,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(right, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					right.rotation = defaultRLegQuat;
+					right.rotation = defaultURLegQuat;
 
-					right.Rotate(right.forward, legRotateZ.Value);
-					right.Rotate(right.right, legRotateY.Value * -1);
+					right.Rotate(right.forward, upperLegRotateZ.Value);
+					right.Rotate(right.right, upperLegRotateY.Value * -1);
 				}
 			}
 
@@ -292,17 +292,17 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を伸ばす");
-			legScaleY.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
+			upperLegScaleY.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			GUILayout.Space(5);
 			GUILayout.Label("裾を太くする");
-			legScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
+			upperLegScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 
 			if (EditorGUI.EndChangeCheck())
 			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
-				var legScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);
+				var legScale = new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value);
 				if (left != null)
 				{
 					Undo.RecordObject(left, UndoGroupName);
@@ -480,23 +480,23 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 		private void SetDefaultQuaternion()
 		{
-			armRotateZ.Value = 0;
-			armRotateY.Value = 0;
+			upperArmRotateZ.Value = 0;
+			upperArmRotateY.Value = 0;
 			hipsPosY.Value = 0;
 			hipsPosZ.Value = 0;
-			legRotateZ.Value = 0;
-			legRotateY.Value = 0;
+			upperLegRotateZ.Value = 0;
+			upperLegRotateY.Value = 0;
 			spineRotate.Value = 0;
-			armScaleY.Value = 1;
-			armScaleX.Value = 1;
+			upperArmScaleY.Value = 1;
+			upperArmScaleX.Value = 1;
 			hipScaleX.Value = 1;
-			legScaleX.Value = 1;
-			legScaleY.Value = 1;
+			upperLegScaleX.Value = 1;
+			upperLegScaleY.Value = 1;
 
 			if (GetTransform(HumanBodyBones.LeftUpperArm) != null)
-				defaultLArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
+				defaultULArmQuat = GetTransform(HumanBodyBones.LeftUpperArm).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperArm) != null)
-				defaultRArmQuat = GetTransform(HumanBodyBones.RightUpperArm).rotation;
+				defaultURArmQuat = GetTransform(HumanBodyBones.RightUpperArm).rotation;
 
 			if (GetTransform(HumanBodyBones.Hips) != null)
 				defaultHipsPos = GetTransform(HumanBodyBones.Hips).position;
@@ -504,9 +504,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
 
 			if (GetTransform(HumanBodyBones.LeftUpperLeg) != null)
-				defaultLLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
+				defaultULLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
 			if (GetTransform(HumanBodyBones.RightUpperLeg) != null)
-				defaultRLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
+				defaultURLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
 		}
 
 		private void SaveToJson()
@@ -516,18 +516,18 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				return;
 
 			var data = new SaveableData();
-			data.armRotateZ = armRotateZ.Value;
-			data.armRotateY = armRotateY.Value;
+			data.upperArmRotateZ = upperArmRotateZ.Value;
+			data.upperArmRotateY = upperArmRotateY.Value;
 			data.hipsPosY = hipsPosY.Value;
 			data.hipsPosZ = hipsPosZ.Value;
-			data.legRotateZ = legRotateZ.Value;
-			data.legRotateY = legRotateY.Value;
+			data.upperLegRotateZ = upperLegRotateZ.Value;
+			data.upperLegRotateY = upperLegRotateY.Value;
 			data.spineRotate = spineRotate.Value;
-			data.armScaleY = armScaleY.Value;
-			data.armScaleX = armScaleX.Value;
+			data.upperArmScaleY = upperArmScaleY.Value;
+			data.upperArmScaleX = upperArmScaleX.Value;
 			data.hipScaleX = hipScaleX.Value;
-			data.legScaleX = legScaleX.Value;
-			data.legScaleY = legScaleY.Value;
+			data.upperLegScaleX = upperLegScaleX.Value;
+			data.upperLegScaleY = upperLegScaleY.Value;
 
 			try
 			{
@@ -565,30 +565,30 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				throw;
 			}
 
-			if (!float.IsNaN(data.armRotateZ))
-				armRotateZ.Value = data.armRotateZ;
-			if (!float.IsNaN(data.armRotateY))
-				armRotateY.Value = data.armRotateY;
+			if (!float.IsNaN(data.upperArmRotateZ))
+				upperArmRotateZ.Value = data.upperArmRotateZ;
+			if (!float.IsNaN(data.upperArmRotateY))
+				upperArmRotateY.Value = data.upperArmRotateY;
 			if (!float.IsNaN(data.hipsPosY))
 				hipsPosY.Value = data.hipsPosY;
 			if (!float.IsNaN(data.hipsPosZ))
 				hipsPosZ.Value = data.hipsPosZ;
-			if (!float.IsNaN(data.legRotateZ))
-				legRotateZ.Value = data.legRotateZ;
-			if (!float.IsNaN(data.legRotateY))
-				legRotateY.Value = data.legRotateY;
+			if (!float.IsNaN(data.upperLegRotateZ))
+				upperLegRotateZ.Value = data.upperLegRotateZ;
+			if (!float.IsNaN(data.upperLegRotateY))
+				upperLegRotateY.Value = data.upperLegRotateY;
 			if (!float.IsNaN(data.spineRotate))
 				spineRotate.Value = data.spineRotate;
-			if (!float.IsNaN(data.armScaleY))
-				armScaleY.Value = data.armScaleY;
-			if (!float.IsNaN(data.armScaleX))
-				armScaleX.Value = data.armScaleX;
+			if (!float.IsNaN(data.upperArmScaleY))
+				upperArmScaleY.Value = data.upperArmScaleY;
+			if (!float.IsNaN(data.upperArmScaleX))
+				upperArmScaleX.Value = data.upperArmScaleX;
 			if (!float.IsNaN(data.hipScaleX))
 				hipScaleX.Value = data.hipScaleX;
-			if (!float.IsNaN(data.legScaleX))
-				legScaleX.Value = data.legScaleX;
-			if (!float.IsNaN(data.legScaleY))
-				legScaleY.Value = data.legScaleY;
+			if (!float.IsNaN(data.upperLegScaleX))
+				upperLegScaleX.Value = data.upperLegScaleX;
+			if (!float.IsNaN(data.upperLegScaleY))
+				upperLegScaleY.Value = data.upperLegScaleY;
 
 			if (isHair)
 			{
@@ -598,11 +598,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			{
 				var leftUpperArm = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (leftUpperArm != null)
-					defaultLArmQuat = leftUpperArm.rotation * Quaternion.AngleAxis(armRotateY.Value * -1, leftUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(armRotateZ.Value, leftUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
+					defaultULArmQuat = leftUpperArm.rotation * Quaternion.AngleAxis(upperArmRotateY.Value * -1, leftUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(upperArmRotateZ.Value, leftUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
 
 				var rightUpperArm = GetTransform(HumanBodyBones.RightUpperArm);
 				if (rightUpperArm != null)
-					defaultRArmQuat = rightUpperArm.rotation * Quaternion.AngleAxis(armRotateY.Value, rightUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(armRotateZ.Value * -1, rightUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
+					defaultURArmQuat = rightUpperArm.rotation * Quaternion.AngleAxis(upperArmRotateY.Value, rightUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(upperArmRotateZ.Value * -1, rightUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
 
 				if (GetTransform(HumanBodyBones.Hips) != null)
 					defaultHipsPos = GetTransform(HumanBodyBones.Hips).position - new Vector3(0, hipsPosY.Value, hipsPosZ.Value);;
@@ -613,11 +613,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
 				if (leftUpperLeg != null)
-					defaultLLegQuat = leftUpperLeg.rotation * Quaternion.AngleAxis(legRotateY.Value, leftUpperLeg.right) * Quaternion.AngleAxis(legRotateZ.Value, leftUpperLeg.forward);
+					defaultULLegQuat = leftUpperLeg.rotation * Quaternion.AngleAxis(upperLegRotateY.Value, leftUpperLeg.right) * Quaternion.AngleAxis(upperLegRotateZ.Value, leftUpperLeg.forward);
 
 				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
 				if (rightUpperLeg != null)
-					defaultRLegQuat = rightUpperLeg.rotation * Quaternion.AngleAxis(legRotateY.Value, rightUpperLeg.right) * Quaternion.AngleAxis(legRotateZ.Value * -1, rightUpperLeg.forward);
+					defaultURLegQuat = rightUpperLeg.rotation * Quaternion.AngleAxis(upperLegRotateY.Value, rightUpperLeg.right) * Quaternion.AngleAxis(upperLegRotateZ.Value * -1, rightUpperLeg.forward);
 			}
 
 			collapse.RequestCollapse(collapseGroupId);
@@ -645,30 +645,30 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				throw;
 			}
 
-			if (!float.IsNaN(data.armRotateZ))
-				armRotateZ.Value = data.armRotateZ;
-			if (!float.IsNaN(data.armRotateY))
-				armRotateY.Value = data.armRotateY;
+			if (!float.IsNaN(data.upperArmRotateZ))
+				upperArmRotateZ.Value = data.upperArmRotateZ;
+			if (!float.IsNaN(data.upperArmRotateY))
+				upperArmRotateY.Value = data.upperArmRotateY;
 			if (!float.IsNaN(data.hipsPosY))
 				hipsPosY.Value = data.hipsPosY;
 			if (!float.IsNaN(data.hipsPosZ))
 				hipsPosZ.Value = data.hipsPosZ;
-			if (!float.IsNaN(data.legRotateZ))
-				legRotateZ.Value = data.legRotateZ;
-			if (!float.IsNaN(data.legRotateY))
-				legRotateY.Value = data.legRotateY;
+			if (!float.IsNaN(data.upperLegRotateZ))
+				upperLegRotateZ.Value = data.upperLegRotateZ;
+			if (!float.IsNaN(data.upperLegRotateY))
+				upperLegRotateY.Value = data.upperLegRotateY;
 			if (!float.IsNaN(data.spineRotate))
 				spineRotate.Value = data.spineRotate;
-			if (!float.IsNaN(data.armScaleY))
-				armScaleY.Value = data.armScaleY;
-			if (!float.IsNaN(data.armScaleX))
-				armScaleX.Value = data.armScaleX;
+			if (!float.IsNaN(data.upperArmScaleY))
+				upperArmScaleY.Value = data.upperArmScaleY;
+			if (!float.IsNaN(data.upperArmScaleX))
+				upperArmScaleX.Value = data.upperArmScaleX;
 			if (!float.IsNaN(data.hipScaleX))
 				hipScaleX.Value = data.hipScaleX;
-			if (!float.IsNaN(data.legScaleX))
-				legScaleX.Value = data.legScaleX;
-			if (!float.IsNaN(data.legScaleY))
-				legScaleY.Value = data.legScaleY;
+			if (!float.IsNaN(data.upperLegScaleX))
+				upperLegScaleX.Value = data.upperLegScaleX;
+			if (!float.IsNaN(data.upperLegScaleY))
+				upperLegScaleY.Value = data.upperLegScaleY;
 
 			if (isHair)
 			{
@@ -696,10 +696,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(leftUpperArm, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					leftUpperArm.rotation = defaultLArmQuat;
-					leftUpperArm.Rotate(new Vector3(0, 0, 1), armRotateZ.Value * -1, Space.World);
-					leftUpperArm.Rotate(new Vector3(0, 1, 0), armRotateY.Value, Space.World);
-					leftUpperArm.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
+					leftUpperArm.rotation = defaultULArmQuat;
+					leftUpperArm.Rotate(new Vector3(0, 0, 1), upperArmRotateZ.Value * -1, Space.World);
+					leftUpperArm.Rotate(new Vector3(0, 1, 0), upperArmRotateY.Value, Space.World);
+					leftUpperArm.localScale = new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value);
 				}
 
 				var rightUpperArm = GetTransform(HumanBodyBones.RightUpperArm);
@@ -707,10 +707,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(rightUpperArm, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					rightUpperArm.rotation = defaultRArmQuat;
-					rightUpperArm.Rotate(new Vector3(0, 0, 1), armRotateZ.Value, Space.World);
-					rightUpperArm.Rotate(new Vector3(0, 1, 0), armRotateY.Value * -1, Space.World);
-					rightUpperArm.localScale = new Vector3(armScaleX.Value, armScaleY.Value, armScaleX.Value);
+					rightUpperArm.rotation = defaultURArmQuat;
+					rightUpperArm.Rotate(new Vector3(0, 0, 1), upperArmRotateZ.Value, Space.World);
+					rightUpperArm.Rotate(new Vector3(0, 1, 0), upperArmRotateY.Value * -1, Space.World);
+					rightUpperArm.localScale = new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value);
 				}
 
 				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
@@ -718,10 +718,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(leftUpperLeg, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					leftUpperLeg.rotation = defaultLLegQuat;
-					leftUpperLeg.Rotate(leftUpperLeg.forward, legRotateZ.Value * -1);
-					leftUpperLeg.Rotate(leftUpperLeg.right, legRotateY.Value * -1);
-					leftUpperLeg.localScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);;
+					leftUpperLeg.rotation = defaultULLegQuat;
+					leftUpperLeg.Rotate(leftUpperLeg.forward, upperLegRotateZ.Value * -1);
+					leftUpperLeg.Rotate(leftUpperLeg.right, upperLegRotateY.Value * -1);
+					leftUpperLeg.localScale = new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value);;
 				}
 
 				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
@@ -729,10 +729,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				{
 					Undo.RecordObject(rightUpperLeg, UndoGroupName);
 					//0で0に戻りたいので、回す前にいったん初期値を入れる
-					rightUpperLeg.rotation = defaultRLegQuat;
-					rightUpperLeg.Rotate(rightUpperLeg.forward, legRotateZ.Value);
-					rightUpperLeg.Rotate(rightUpperLeg.right, legRotateY.Value * -1);
-					rightUpperLeg.localScale = new Vector3(legScaleX.Value, legScaleY.Value, legScaleX.Value);;
+					rightUpperLeg.rotation = defaultURLegQuat;
+					rightUpperLeg.Rotate(rightUpperLeg.forward, upperLegRotateZ.Value);
+					rightUpperLeg.Rotate(rightUpperLeg.right, upperLegRotateY.Value * -1);
+					rightUpperLeg.localScale = new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value);;
 				}
 			}
 
