@@ -171,7 +171,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			public float spineRotate = float.NaN;
 			public float upperArmScaleY = float.NaN;
 			public float upperArmScaleX = float.NaN;
-			public float hipScaleX = float.NaN;
+			public float hipScale = float.NaN;
 			public float upperLegScaleX = float.NaN;
 			public float upperLegScaleY = float.NaN;
 		}

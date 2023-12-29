@@ -37,12 +37,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		[SerializeField] private FloatUndoState spineRotate;
 		[SerializeField] private FloatUndoState upperArmScaleY;
 		[SerializeField] private FloatUndoState upperArmScaleX;
-		[SerializeField] private FloatUndoState hipScaleX;
+		[SerializeField] private FloatUndoState hipScale;
 		[SerializeField] private FloatUndoState upperLegScaleX;
 		[SerializeField] private FloatUndoState upperLegScaleY;
 
 		//初期値保持
 		[SerializeField] private Vector3 defaultHipsPos;
+		[SerializeField] private Vector3 defaultHipsScale;
 		[SerializeField] private Quaternion defaultULArmQuat;
 		[SerializeField] private Quaternion defaultURArmQuat;
 		[SerializeField] private Quaternion defaultSpineQuat;
@@ -162,12 +163,12 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			hipScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
+			hipScale.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 1.5f);
 			if (EditorGUI.EndChangeCheck())
 			{
 				var hips = GetTransform(HumanBodyBones.Hips);
 				Undo.RecordObject(hips, UndoGroupName);
-				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+				hips.localScale = defaultHipsScale * hipScale.Value;
 			}
 
 			GUILayout.Space(5);
@@ -332,7 +333,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (EditorGUI.EndChangeCheck())
 			{
 				Undo.RecordObject(armature, UndoGroupName);
-				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
+				armature.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
 			}
 
 			GUILayout.Space(5);
@@ -340,11 +341,11 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			EditorGUI.BeginChangeCheck();
 
 			GUILayout.Label("拡大縮小");
-			hipScaleX.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 2.0f);
+			hipScale.ButtonAndSliderGui(ref collapse, 1.0f, 0.5f, 2.0f);
 			if (EditorGUI.EndChangeCheck())
 			{
 				Undo.RecordObject(armature, UndoGroupName);
-				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+				armature.localScale = defaultHipsScale * hipScale.Value;
 			}
 		}
 
@@ -475,10 +476,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				boneList[HumanBodyBones.RightUpperLeg] == null)
 				dressBoneWarn = true && !isHair;
 
-			SetDefaultQuaternion();
+			SetDefault();
 		}
 
-		private void SetDefaultQuaternion()
+		private void SetDefault()
 		{
 			upperArmRotateZ.Value = 0;
 			upperArmRotateY.Value = 0;
@@ -489,7 +490,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			spineRotate.Value = 0;
 			upperArmScaleY.Value = 1;
 			upperArmScaleX.Value = 1;
-			hipScaleX.Value = 1;
+			hipScale.Value = 1;
 			upperLegScaleX.Value = 1;
 			upperLegScaleY.Value = 1;
 
@@ -500,6 +501,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			if (GetTransform(HumanBodyBones.Hips) != null)
 				defaultHipsPos = GetTransform(HumanBodyBones.Hips).position;
+				defaultHipsScale = GetTransform(HumanBodyBones.Hips).localScale;
 			if (GetTransform(HumanBodyBones.Spine) != null)
 				defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
 
@@ -525,7 +527,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			data.spineRotate = spineRotate.Value;
 			data.upperArmScaleY = upperArmScaleY.Value;
 			data.upperArmScaleX = upperArmScaleX.Value;
-			data.hipScaleX = hipScaleX.Value;
+			data.hipScale = hipScale.Value;
 			data.upperLegScaleX = upperLegScaleX.Value;
 			data.upperLegScaleY = upperLegScaleY.Value;
 
@@ -583,8 +585,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				upperArmScaleY.Value = data.upperArmScaleY;
 			if (!float.IsNaN(data.upperArmScaleX))
 				upperArmScaleX.Value = data.upperArmScaleX;
-			if (!float.IsNaN(data.hipScaleX))
-				hipScaleX.Value = data.hipScaleX;
+			if (!float.IsNaN(data.hipScale))
+				hipScale.Value = data.hipScale;
 			if (!float.IsNaN(data.upperLegScaleX))
 				upperLegScaleX.Value = data.upperLegScaleX;
 			if (!float.IsNaN(data.upperLegScaleY))
@@ -592,7 +594,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 			if (isHair)
 			{
-				//nothing to do here for now
+				defaultHipsPos = armature.position - new Vector3(0, hipsPosY.Value, hipsPosZ.Value);;
+				defaultHipsScale = armature.localScale / hipScale.Value;
 			}
 			else
 			{
@@ -604,8 +607,10 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				if (rightUpperArm != null)
 					defaultURArmQuat = rightUpperArm.rotation * Quaternion.AngleAxis(upperArmRotateY.Value, rightUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(upperArmRotateZ.Value * -1, rightUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
 
-				if (GetTransform(HumanBodyBones.Hips) != null)
-					defaultHipsPos = GetTransform(HumanBodyBones.Hips).position - new Vector3(0, hipsPosY.Value, hipsPosZ.Value);;
+				var hips = GetTransform(HumanBodyBones.Hips);
+				if (hips != null)
+					defaultHipsPos = hips.position - new Vector3(0, hipsPosY.Value, hipsPosZ.Value);;
+					defaultHipsScale = hips.localScale / hipScale.Value;
 
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null)
@@ -663,8 +668,8 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				upperArmScaleY.Value = data.upperArmScaleY;
 			if (!float.IsNaN(data.upperArmScaleX))
 				upperArmScaleX.Value = data.upperArmScaleX;
-			if (!float.IsNaN(data.hipScaleX))
-				hipScaleX.Value = data.hipScaleX;
+			if (!float.IsNaN(data.hipScale))
+				hipScale.Value = data.hipScale;
 			if (!float.IsNaN(data.upperLegScaleX))
 				upperLegScaleX.Value = data.upperLegScaleX;
 			if (!float.IsNaN(data.upperLegScaleY))
@@ -673,15 +678,15 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (isHair)
 			{
 				Undo.RecordObject(armature, UndoGroupName);
-				armature.transform.position = new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
-				armature.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+				armature.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
+				armature.localScale = defaultHipsScale * hipScale.Value;
 			}
 			else
 			{
 				var hips = GetTransform(HumanBodyBones.Hips);
 				Undo.RecordObject(hips, UndoGroupName);
 				hips.position = defaultHipsPos + new Vector3(0, hipsPosY.Value, hipsPosZ.Value);
-				hips.localScale = new Vector3(hipScaleX.Value, hipScaleX.Value, hipScaleX.Value);
+				hips.localScale = defaultHipsScale * hipScale.Value;
 
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null)
