@@ -554,6 +554,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				}
 				defaultURLegQuat = rightUpperLeg.rotation;
 			}
+
+			if (isHair)
+			{
+				defaultHipsPos = armature.position;
+				defaultHipsScale = armature.localScale;
+			}
+
 		}
 
 		private void SaveToJson()
