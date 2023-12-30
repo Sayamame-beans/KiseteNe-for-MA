@@ -45,6 +45,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		[SerializeField] private Vector3 defaultHipsPos;
 		[SerializeField] private Vector3 defaultUArmScale;
 		[SerializeField] private Vector3 defaultHipsScale;
+		[SerializeField] private Vector3 defaultULegScale;
 		[SerializeField] private Quaternion defaultULArmQuat;
 		[SerializeField] private Quaternion defaultURArmQuat;
 		[SerializeField] private Quaternion defaultSpineQuat;
@@ -239,17 +240,18 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (EditorGUI.EndChangeCheck())
 			{
 				var left = GetTransform(HumanBodyBones.LeftUpperArm);
+				var right = GetTransform(HumanBodyBones.RightUpperArm);
+				var armScale = Vector3.Scale(defaultUArmScale, new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value));
 				if (left != null)
 				{
 					Undo.RecordObject(left, UndoGroupName);
-					left.localScale = Vector3.Scale(defaultUArmScale, new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value));
+					left.localScale = armScale;
 				}
 
-				var right = GetTransform(HumanBodyBones.RightUpperArm);
 				if (right != null)
 				{
 					Undo.RecordObject(right, UndoGroupName);
-					right.localScale = Vector3.Scale(defaultUArmScale, new Vector3(upperArmScaleX.Value, upperArmScaleY.Value, upperArmScaleX.Value));
+					right.localScale = armScale;
 				}
 			}
 		}
@@ -304,7 +306,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			{
 				var left = GetTransform(HumanBodyBones.LeftUpperLeg);
 				var right = GetTransform(HumanBodyBones.RightUpperLeg);
-				var legScale = new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value);
+				var legScale = Vector3.Scale(defaultULegScale, new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value));
 				if (left != null)
 				{
 					Undo.RecordObject(left, UndoGroupName);
@@ -520,10 +522,20 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (GetTransform(HumanBodyBones.Spine) != null)
 				defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
 
-			if (GetTransform(HumanBodyBones.LeftUpperLeg) != null)
-				defaultULLegQuat = GetTransform(HumanBodyBones.LeftUpperLeg).rotation;
-			if (GetTransform(HumanBodyBones.RightUpperLeg) != null)
-				defaultURLegQuat = GetTransform(HumanBodyBones.RightUpperLeg).rotation;
+			var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
+			if (leftUpperLeg != null)
+			{
+				defaultULegScale = leftUpperLeg.localScale;
+				defaultULLegQuat = leftUpperLeg.rotation;
+			}
+
+			var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
+			if (rightUpperLeg != null)
+			{
+				if (defaultULegScale == Vector3.zero)
+					defaultULegScale = rightUpperLeg.localScale;
+				defaultURLegQuat = rightUpperLeg.rotation;
+			}
 		}
 
 		private void SaveToJson()
@@ -617,7 +629,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				var leftUpperArm = GetTransform(HumanBodyBones.LeftUpperArm);
 				if (leftUpperArm != null)
 				{
-					defaultUArmScale = new Vector3(leftUpperArm.localScale.x / upperLegScaleX.Value, leftUpperArm.localScale.y / upperLegScaleY.Value, leftUpperArm.localScale.z / upperLegScaleX.Value);
+					defaultUArmScale = new Vector3(leftUpperArm.localScale.x / upperArmScaleX.Value, leftUpperArm.localScale.y / upperArmScaleY.Value, leftUpperArm.localScale.z / upperArmScaleX.Value);
 					defaultULArmQuat = leftUpperArm.rotation * Quaternion.AngleAxis(upperArmRotateY.Value * -1, leftUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(upperArmRotateZ.Value, leftUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
 				}
 
@@ -625,7 +637,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				if (rightUpperArm != null)
 				{
 					if (defaultUArmScale == Vector3.zero)
-						defaultUArmScale = new Vector3(rightUpperArm.localScale.x / upperLegScaleX.Value, rightUpperArm.localScale.y / upperLegScaleY.Value, rightUpperArm.localScale.z / upperLegScaleX.Value);
+						defaultUArmScale = new Vector3(rightUpperArm.localScale.x / upperArmScaleX.Value, rightUpperArm.localScale.y / upperArmScaleY.Value, rightUpperArm.localScale.z / upperArmScaleX.Value);
 					defaultURArmQuat = rightUpperArm.rotation * Quaternion.AngleAxis(upperArmRotateY.Value, rightUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(upperArmRotateZ.Value * -1, rightUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
 				}
 
@@ -642,11 +654,18 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
 				if (leftUpperLeg != null)
+				{
+					defaultULegScale = new Vector3(leftUpperLeg.localScale.x / upperLegScaleX.Value, leftUpperLeg.localScale.y / upperLegScaleY.Value, leftUpperLeg.localScale.z / upperLegScaleX.Value);
 					defaultULLegQuat = leftUpperLeg.rotation * Quaternion.AngleAxis(upperLegRotateY.Value, leftUpperLeg.right) * Quaternion.AngleAxis(upperLegRotateZ.Value, leftUpperLeg.forward);
+				}
 
 				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
 				if (rightUpperLeg != null)
+				{
+					if (defaultUArmScale == Vector3.zero)
+						defaultULegScale = new Vector3(rightUpperLeg.localScale.x / upperLegScaleX.Value, rightUpperLeg.localScale.y / upperLegScaleY.Value, rightUpperLeg.localScale.z / upperLegScaleX.Value);
 					defaultURLegQuat = rightUpperLeg.rotation * Quaternion.AngleAxis(upperLegRotateY.Value, rightUpperLeg.right) * Quaternion.AngleAxis(upperLegRotateZ.Value * -1, rightUpperLeg.forward);
+				}
 			}
 
 			collapse.RequestCollapse(collapseGroupId);
@@ -750,7 +769,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					leftUpperLeg.rotation = defaultULLegQuat;
 					leftUpperLeg.Rotate(leftUpperLeg.forward, upperLegRotateZ.Value * -1);
 					leftUpperLeg.Rotate(leftUpperLeg.right, upperLegRotateY.Value * -1);
-					leftUpperLeg.localScale = new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value);;
+					leftUpperLeg.localScale = Vector3.Scale(defaultULegScale, new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value));
 				}
 
 				var rightUpperLeg = GetTransform(HumanBodyBones.RightUpperLeg);
@@ -761,7 +780,7 @@ namespace Sayabeans.KiseteNeForMA.Editor
 					rightUpperLeg.rotation = defaultURLegQuat;
 					rightUpperLeg.Rotate(rightUpperLeg.forward, upperLegRotateZ.Value);
 					rightUpperLeg.Rotate(rightUpperLeg.right, upperLegRotateY.Value * -1);
-					rightUpperLeg.localScale = new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value);;
+					rightUpperLeg.localScale = Vector3.Scale(defaultULegScale, new Vector3(upperLegScaleX.Value, upperLegScaleY.Value, upperLegScaleX.Value));
 				}
 			}
 
