@@ -22,15 +22,21 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		private Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern)
 		{
 			if (boneList[bone] != null)
+			{
 				return boneList[bone];
+			}
 
 			if (parent == null)
+			{
 				return null;
+			}
 
 			foreach (Transform child in parent)
 			{
 				if (matchPattern.IsMatch(child.name))
+				{
 					return child;
+				}
 			}
 			return null;
 		}
@@ -38,10 +44,14 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		private Transform FindBone(HumanBodyBones bone, Transform parent, Regex matchPattern, Side side)
 		{
 			if (boneList[bone] != null)
+			{
 				return boneList[bone];
+			}
 
 			if (parent == null)
+			{
 				return null;
+			}
 
 			Transform hit1 = null;
 			Transform hit2 = null;
@@ -51,14 +61,20 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				if (matchPattern.IsMatch(child.name))
 				{
 					if (hit1 == null)
+					{
 						hit1 = child;
+					}
 					else
+					{
 						hit2 = child;
+					}
 				}
 			}
 
 			if (hit1 == null || hit2 == null)
+			{
 				return null;
+			}
 
 			switch (side)
 			{
@@ -106,7 +122,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			public void CollapseIfRequested()
 			{
 				if (collapseGroupId != 0)
+				{
 					Undo.CollapseUndoOperations(collapseGroupId);
+				}
 			}
 		}
 
@@ -128,19 +146,29 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			{
 				GUILayout.BeginHorizontal();
 				if (GUILayout.Button("RESET"))
+				{
 					_knownValue = value = paramDefault;
+				}
 
 				if (GUILayout.Button("--", EditorStyles.miniButtonLeft, GUILayout.Height(20), GUILayout.Width(50)))
+				{
 					SliderButton(-0.01f * paramRatio, ref collapse);
+				}
 
 				if (GUILayout.Button("-", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
+				{
 					SliderButton(-0.001f * paramRatio, ref collapse);
+				}
 
 				if (GUILayout.Button("+", EditorStyles.miniButtonMid, GUILayout.Height(20), GUILayout.Width(50)))
+				{
 					SliderButton(+0.001f * paramRatio, ref collapse);
+				}
 
 				if (GUILayout.Button("++", EditorStyles.miniButtonRight, GUILayout.Height(20), GUILayout.Width(50)))
+				{
 					SliderButton(+0.01f * paramRatio, ref collapse);
+				}
 
 				GUILayout.EndHorizontal();
 
@@ -152,9 +180,13 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				_knownValue = value += diff;
 				var currentId = Undo.GetCurrentGroup();
 				if (prevGroupId + 1 == currentId)
+				{
 					collapse.RequestCollapse(collapseGroupId);
+				}
 				else
+				{
 					collapseGroupId = currentId;
+				}
 				prevGroupId = currentId;
 			}
 		}

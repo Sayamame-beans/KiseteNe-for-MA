@@ -90,7 +90,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 
 			if (dress == null)
+			{
 				return;
+			}
 
 			if (dressBoneError)
 			{
@@ -99,7 +101,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 
 			if (dressBoneWarn)
+			{
 				EditorGUILayout.HelpBox("服のボーンを一部取得することができませんでした。\n調整時にうまく動かない場合、ボーン詳細設定を確認してください", MessageType.Warning, true);
+			}
 
 			boneDetail = GUILayout.Toggle(boneDetail, "ボーン詳細設定");
 			if (boneDetail)
@@ -393,7 +397,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			boneList.Clear();
 
 			if (dress == null)
+			{
 				return;
+			}
 
 			armature = FindBone(HumanBodyBones.Hips, dress.transform, ArmatureRegexPattern);
 			if (armature == null)
@@ -407,11 +413,15 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (dressAnim != null && dressAnim.isHuman)
 			{
 				for (int i = (int)HumanBodyBones.Hips; i <= (int)HumanBodyBones.RightToes; i++)
+				{
 					boneList[(HumanBodyBones)i] = dressAnim.GetBoneTransform((HumanBodyBones)i);
+				}
 			}
 
 			if(boneList[HumanBodyBones.Hips] == null)
+			{
 				boneList[HumanBodyBones.Hips] = FindBone(HumanBodyBones.Hips,armature, HipsPattern);
+			}
 
 			if (boneList[HumanBodyBones.Hips] == null)
 			{
@@ -477,7 +487,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				boneList[HumanBodyBones.RightShoulder] == null ||
 				boneList[HumanBodyBones.LeftUpperLeg] == null ||
 				boneList[HumanBodyBones.RightUpperLeg] == null)
+			{
 				dressBoneWarn = true && !isHair;
+			}
 
 			SetDefault();
 		}
@@ -508,7 +520,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (rightUpperArm != null)
 			{
 				if (defaultUArmScale == Vector3.zero)
+				{
 					defaultUArmScale = rightUpperArm.localScale;
+				}
 				defaultURArmQuat = rightUpperArm.rotation;
 			}
 
@@ -520,7 +534,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 
 			if (GetTransform(HumanBodyBones.Spine) != null)
+			{
 				defaultSpineQuat = GetTransform(HumanBodyBones.Spine).rotation;
+			}
 
 			var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
 			if (leftUpperLeg != null)
@@ -533,7 +549,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			if (rightUpperLeg != null)
 			{
 				if (defaultULegScale == Vector3.zero)
+				{
 					defaultULegScale = rightUpperLeg.localScale;
+				}
 				defaultURLegQuat = rightUpperLeg.rotation;
 			}
 		}
@@ -542,7 +560,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		{
 			string filePath = EditorUtility.SaveFilePanel("[KiseteNe for MA] 調整値を保存", "Assets/", "edits.json", "json");
 			if (filePath == "")
+			{
 				return;
+			}
 
 			var data = new SaveableData();
 			data.upperArmRotateZ = upperArmRotateZ.Value;
@@ -576,7 +596,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		{
 			var filePath = EditorUtility.OpenFilePanel("[KiseteNe for MA] 調整値を読み込む", "Assets/", "json");
 			if (filePath == "")
+			{
 				return;
+			}
 
 			var collapseGroupId = Undo.GetCurrentGroup();
 			SaveableData data = new SaveableData();
@@ -595,29 +617,53 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 
 			if (!float.IsNaN(data.upperArmRotateZ))
+			{
 				upperArmRotateZ.Value = data.upperArmRotateZ;
+			}
 			if (!float.IsNaN(data.upperArmRotateY))
+			{
 				upperArmRotateY.Value = data.upperArmRotateY;
+			}
 			if (!float.IsNaN(data.hipsPosY))
+			{
 				hipsPosY.Value = data.hipsPosY;
+			}
 			if (!float.IsNaN(data.hipsPosZ))
+			{
 				hipsPosZ.Value = data.hipsPosZ;
+			}
 			if (!float.IsNaN(data.upperLegRotateZ))
+			{
 				upperLegRotateZ.Value = data.upperLegRotateZ;
+			}
 			if (!float.IsNaN(data.upperLegRotateY))
+			{
 				upperLegRotateY.Value = data.upperLegRotateY;
+			}
 			if (!float.IsNaN(data.spineRotate))
+			{
 				spineRotate.Value = data.spineRotate;
+			}
 			if (!float.IsNaN(data.upperArmScaleY))
+			{
 				upperArmScaleY.Value = data.upperArmScaleY;
+			}
 			if (!float.IsNaN(data.upperArmScaleX))
+			{
 				upperArmScaleX.Value = data.upperArmScaleX;
+			}
 			if (!float.IsNaN(data.hipScale))
+			{
 				hipScale.Value = data.hipScale;
+			}
 			if (!float.IsNaN(data.upperLegScaleX))
+			{
 				upperLegScaleX.Value = data.upperLegScaleX;
+			}
 			if (!float.IsNaN(data.upperLegScaleY))
+			{
 				upperLegScaleY.Value = data.upperLegScaleY;
+			}
 
 			if (isHair)
 			{
@@ -637,7 +683,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				if (rightUpperArm != null)
 				{
 					if (defaultUArmScale == Vector3.zero)
+					{
 						defaultUArmScale = new Vector3(rightUpperArm.localScale.x / upperArmScaleX.Value, rightUpperArm.localScale.y / upperArmScaleY.Value, rightUpperArm.localScale.z / upperArmScaleX.Value);
+					}
 					defaultURArmQuat = rightUpperArm.rotation * Quaternion.AngleAxis(upperArmRotateY.Value, rightUpperArm.InverseTransformDirection(new Vector3(0, 1, 0))) * Quaternion.AngleAxis(upperArmRotateZ.Value * -1, rightUpperArm.InverseTransformDirection(new Vector3(0, 0, 1)));
 				}
 
@@ -650,7 +698,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 
 				var spine = GetTransform(HumanBodyBones.Spine);
 				if (spine != null)
+				{
 					defaultSpineQuat = spine.rotation * Quaternion.AngleAxis(spineRotate.Value * -1, spine.right);
+				}
 
 				var leftUpperLeg = GetTransform(HumanBodyBones.LeftUpperLeg);
 				if (leftUpperLeg != null)
@@ -663,7 +713,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 				if (rightUpperLeg != null)
 				{
 					if (defaultUArmScale == Vector3.zero)
+					{
 						defaultULegScale = new Vector3(rightUpperLeg.localScale.x / upperLegScaleX.Value, rightUpperLeg.localScale.y / upperLegScaleY.Value, rightUpperLeg.localScale.z / upperLegScaleX.Value);
+					}
 					defaultURLegQuat = rightUpperLeg.rotation * Quaternion.AngleAxis(upperLegRotateY.Value, rightUpperLeg.right) * Quaternion.AngleAxis(upperLegRotateZ.Value * -1, rightUpperLeg.forward);
 				}
 			}
@@ -675,7 +727,9 @@ namespace Sayabeans.KiseteNeForMA.Editor
 		{
 			var filePath = EditorUtility.OpenFilePanel("[KiseteNe for MA] 調整値を読み込んで適用", "Assets/", "json");
 			if (filePath == "")
+			{
 				return;
+			}
 
 			var collapseGroupId = Undo.GetCurrentGroup();
 			SaveableData data = new SaveableData();
@@ -694,29 +748,53 @@ namespace Sayabeans.KiseteNeForMA.Editor
 			}
 
 			if (!float.IsNaN(data.upperArmRotateZ))
+			{
 				upperArmRotateZ.Value = data.upperArmRotateZ;
+			}
 			if (!float.IsNaN(data.upperArmRotateY))
+			{
 				upperArmRotateY.Value = data.upperArmRotateY;
+			}
 			if (!float.IsNaN(data.hipsPosY))
+			{
 				hipsPosY.Value = data.hipsPosY;
+			}
 			if (!float.IsNaN(data.hipsPosZ))
+			{
 				hipsPosZ.Value = data.hipsPosZ;
+			}
 			if (!float.IsNaN(data.upperLegRotateZ))
+			{
 				upperLegRotateZ.Value = data.upperLegRotateZ;
+			}
 			if (!float.IsNaN(data.upperLegRotateY))
+			{
 				upperLegRotateY.Value = data.upperLegRotateY;
+			}
 			if (!float.IsNaN(data.spineRotate))
+			{
 				spineRotate.Value = data.spineRotate;
+			}
 			if (!float.IsNaN(data.upperArmScaleY))
+			{
 				upperArmScaleY.Value = data.upperArmScaleY;
+			}
 			if (!float.IsNaN(data.upperArmScaleX))
+			{
 				upperArmScaleX.Value = data.upperArmScaleX;
+			}
 			if (!float.IsNaN(data.hipScale))
+			{
 				hipScale.Value = data.hipScale;
+			}
 			if (!float.IsNaN(data.upperLegScaleX))
+			{
 				upperLegScaleX.Value = data.upperLegScaleX;
+			}
 			if (!float.IsNaN(data.upperLegScaleY))
+			{
 				upperLegScaleY.Value = data.upperLegScaleY;
+			}
 
 			if (isHair)
 			{
