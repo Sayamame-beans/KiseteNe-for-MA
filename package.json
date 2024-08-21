@@ -6,6 +6,8 @@
     "name": "Sayamame-beans",
     "url": "https://github.com/Sayamame-beans"
   },
+  "url": "https://github.com/Sayamame-beans/KiseteNe-for-MA",
+  "repo": "https://sayabeans.github.io/vpm/index.json",
   "vpmDependencies": {
     "com.vrchat.avatars": "3.x.x"
   },
