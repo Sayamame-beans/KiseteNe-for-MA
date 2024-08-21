@@ -38,11 +38,9 @@ jobs:
           echo "zipFile=${{ steps.name.outputs.prop }}-${{ steps.version.outputs.prop }}.zip" >> $GITHUB_ENV
 
       - name: Create Zip
-        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
-        with:
-          type: "zip"
-          directory: "./"
-          filename: "${{env.zipFile}}"
+        run: zip -r "$ZIP_NAME" . -x '.*'
+        env:
+          ZIP_NAME: "${{env.zipFile}}"
 
       - name: Create VPAI Package
         run: curl -sL "https://api.anatawa12.com/create-vpai/?repo=https%3A%2F%2Fsayabeans.github.io%2Fvpm%2Findex.json&package=${{ steps.name.outputs.prop }}&version=${{ env.majorVersionValue }}.x.x" > ${{ env.repositoryName }}-${{ env.majorVersionValue }}.x.x-installer.unitypackage
