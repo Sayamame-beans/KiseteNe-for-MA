@@ -38,7 +38,7 @@ jobs:
           echo "zipFile=${{ steps.name.outputs.prop }}-${{ steps.version.outputs.prop }}.zip" >> $GITHUB_ENV
 
       - name: Create Zip
-        run: zip -r "$ZIP_NAME" . -x '.*' '.git*' '*/.git*'
+        run: zip -r "$ZIP_NAME" . -x '.*' '*/.*'
         env:
           ZIP_NAME: "${{env.zipFile}}"
 
